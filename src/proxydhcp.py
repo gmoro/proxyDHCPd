@@ -27,13 +27,13 @@ from dhcpd import DHCPD,ProxyDHCPD
 
 def usage():
     print """
-Usage %s [-c file] [-h] [-d]
+Usage %s [-c file] [-h] [-d] [-p]
 
 Options:
     -c file  : Specify config file. Defaults is netbootd.ini
     -d       : Run as daemon (ignored on Win32)
     -p       : Run only the ProxyDHCP Server
-    -h       : Help - this screen followed by a swift exit.
+    -h       : Help - this screen 
     
     """ % sys.argv[0]
 
@@ -128,12 +128,12 @@ def main():
         thread.start_new_thread(server.run,())
     thread.start_new_thread(proxyserver.run,())
 
-    while proxyserver.loop:
+    while proxyserver.loop and server.loop:
         try:
             time.sleep(1)
         except (KeyboardInterrupt,SystemExit):
             print "Exiting...."
-            #server.loop = False
+            server.loop = False
             proxyserver.loop = False
             
 if __name__ == "__main__":
