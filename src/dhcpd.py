@@ -30,7 +30,12 @@ class MyDhcpServer(DhcpNetwork) :
         self.dhcp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.dhcp_socket.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1)
         self.dhcp_socket.bind((self.listen_address, self.listen_port))
-
+        self.loop = True
+    def run(self):
+        while self.loop:
+            self.GetNextDhcpPacket()
+        self.log('info','Service shutdown')
+        
 class DHCPD(MyDhcpServer):
     loop = True
     def __init__(self,configfile='proxy.ini',client_port=None,server_port=None):
@@ -41,6 +46,8 @@ class DHCPD(MyDhcpServer):
         self.consoleLog = logging.StreamHandler()
         self.consoleLog.setFormatter(formatter)
         self.logger.addHandler(self.consoleLog)
+        self.client_port = client_port
+        self.server_port = server_port
 
         if sys.platform == 'win32':
             self.fileLog = logging.FileHandler('proxy.log')
@@ -109,11 +116,6 @@ class DHCPD(MyDhcpServer):
             self.logger.info(message)
         else:
             self.logger.debug(message)
-    
-    def run(self):
-        while self.loop:
-            self.GetNextDhcpPacket()
-        self.log('info','Service shutdown')
 
     def fmtHex(self,input):
         input=hex(input)
@@ -124,7 +126,7 @@ class DHCPD(MyDhcpServer):
         return input
 
 class ProxyDHCPD(DHCPD):
-    loop = True
+    
     def __init__(self,configfile='proxy.ini',client_port=None,server_port="4011"):
         self.config = parse_config(configfile)
         if not client_port:
@@ -180,10 +182,12 @@ class ProxyDHCPD(DHCPD):
             self.logger.info(message)
         else:
             self.logger.debug(message)
-    def run(self):
-        while self.loop:
-            self.GetNextDhcpPacket()
-        self.log('info','Service shutdown')
+    #===========================================================================
+    # def run(self):
+    #    while self.loop:
+    #        self.GetNextDhcpPacket()
+    #    self.log('info','Service shutdown')
+    #===========================================================================
 
     def fmtHex(self,input):
         input=hex(input)

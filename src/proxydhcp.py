@@ -30,7 +30,7 @@ def usage():
 Usage %s [-c file] [-h] [-d] [-p]
 
 Options:
-    -c file  : Specify config file. Defaults is netbootd.ini
+    -c file  : Specify config file. Defaults is proxy.ini
     -d       : Run as daemon (ignored on Win32)
     -p       : Run only the ProxyDHCP Server
     -h       : Help - this screen 
@@ -38,6 +38,10 @@ Options:
     """ % sys.argv[0]
 
 def main():
+    if os.geteuid() != 0:
+        print "You must be root to run the proxy"
+        sys.exit(1)
+        
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hc:dp")
     except getopt.GetoptError, err:
@@ -46,7 +50,7 @@ def main():
         sys.exit(2)
         
     # Set defaults, check options supplied
-    configfile = 'netbootd.ini'
+    configfile = 'proxy.ini'
     daemon = False
     proxy_only= False
     
@@ -85,7 +89,7 @@ def main():
             sys.exit(1)
         
     try:
-        proxyserver = ProxyDHCPD()
+        proxyserver = ProxyDHCPD(configfile=configfile)
     except socket.error, msg:
         print "Error initiating Proxy, already running?"
         sys.exit(1)
