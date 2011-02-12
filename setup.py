@@ -28,9 +28,9 @@ if os.name == 'nt':
           version='0.1',
           description = "",
           long_description="",
-          url='http://proxydhcp.sf.net',
-          author='Andrew Tunnell-Jones',
-          author_email='andrew@tj.id.au',
+          url='http://none',
+          author='Guilherme Moro',
+          author_email='guilherme.moro@gmail.com',
           console=['proxydhp.py'],
     	  service=[{'modules': ['proxyservice'], 'cmdline_style': 'pywin32'}],
           options={"py2exe": {
@@ -38,7 +38,7 @@ if os.name == 'nt':
                         "bundle_files": 1
                         }
                    },
-          data_files=[('',['proxy.ini','README.win.txt'])],
+          data_files=[('',['proxy.ini'])],
           zipfile = None
           )
 else:
