@@ -127,7 +127,7 @@ def main():
             sys.exit(1)
 
     # Start loop
-    if server:
+    if server and proxyserver:
         server.logger.info('Listening on ' + server.config['proxy']['listen_address'])
         thread.start_new_thread(server.run,())
     thread.start_new_thread(proxyserver.run,())

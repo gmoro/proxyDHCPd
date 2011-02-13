@@ -62,12 +62,7 @@ class DHCPD(MyDhcpServer):
             self.syslogLog.setLevel(logging.INFO)
             self.logger.addHandler(self.syslogLog)
         self.config = parse_config(configfile)
-        if not client_port:
-            self.client_port=self.config['proxy']["client_listen_port"]
-        if not server_port:
-            self.server_port=self.config['proxy']["server_listen_port"]
 
-        #DhcpServer.__init__(self,self.config['proxy']["listen_address"],client_port,server_port)
         self.log('info',"Starting DHCP on ports client: %s, server: %s"%(self.client_port,self.server_port))
         MyDhcpServer.__init__(self,self.config['proxy']["listen_address"],self.client_port,self.server_port)
 
@@ -129,17 +124,14 @@ class ProxyDHCPD(DHCPD):
     
     def __init__(self,configfile='proxy.ini',client_port=None,server_port="4011"):
         self.config = parse_config(configfile)
-        if not client_port:
-            self.client_port=self.config['proxy']["client_listen_port"]
-        
-        #DhcpServer.__init__(self,self.config['proxy']["listen_address"],client_port,server_port)
+        self.client_port = client_port
+        self.server_port = server_port
         DHCPD.__init__(self,configfile,server_port="4011")
 
     def HandleDhcpDiscover(self, packet):
         self.log('debug','Noticed a DHCP Discover packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
     
     def HandleDhcpRequest(self, packet):
-#        self.log('debug','Noticed a DHCP Request packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
         if packet.IsOption('vendor_class_identifier'):
             
             class_identifier = strlist(packet.GetOption('vendor_class_identifier'))
