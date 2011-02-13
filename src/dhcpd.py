@@ -15,11 +15,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 """
 
-import sys
-import logging, logging.handlers
 from proxyconfig import parse_config
-from pydhcplib.dhcp_packet import *
 from pydhcplib.dhcp_network import *
+from pydhcplib.dhcp_packet import *
+import logging
+import logging.handlers
+import sys
 
 #this class was necessary for get the exceptions the right way
 class MyDhcpServer(DhcpNetwork) :
@@ -38,7 +39,7 @@ class MyDhcpServer(DhcpNetwork) :
         
 class DHCPD(MyDhcpServer):
     loop = True
-    def __init__(self,configfile='proxy.ini',client_port=None,server_port=None):
+    def __init__(self,configfile='proxy.ini',client_port=68,server_port=67):
         self.logger = logging.getLogger('proxydhcp')
         #self.logger.setLevel(logging.INFO)
         self.logger.setLevel(logging.DEBUG)
@@ -122,11 +123,11 @@ class DHCPD(MyDhcpServer):
 
 class ProxyDHCPD(DHCPD):
     
-    def __init__(self,configfile='proxy.ini',client_port=None,server_port="4011"):
+    def __init__(self,configfile='proxy.ini',client_port=68,server_port="4011"):
         self.config = parse_config(configfile)
         self.client_port = client_port
         self.server_port = server_port
-        DHCPD.__init__(self,configfile,server_port="4011")
+        DHCPD.__init__(self,configfile,server_port=server_port)
 
     def HandleDhcpDiscover(self, packet):
         self.log('debug','Noticed a DHCP Discover packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))

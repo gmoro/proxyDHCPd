@@ -16,20 +16,20 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 """
 
+from dhcpd import DHCPD, ProxyDHCPD
 import getopt
-import servicemanager
-import winerror
-import win32serviceutil
-import win32service
-import win32traceutil
-import win32event
-import time
-import sys
 import os
-import thread
+import servicemanager
 import socket
+import sys
+import thread
+import time
 import traceback
-from dhcpd import DHCPD,ProxyDHCPD
+import win32event
+import win32service
+import win32serviceutil
+import win32traceutil
+import winerror
 
 class proxyService(win32serviceutil.ServiceFramework):
     __version__ = "0.1"
@@ -63,9 +63,8 @@ class proxyService(win32serviceutil.ServiceFramework):
                     else:
                         self.logger.debug(message)
             server = winDHCPD(configfile)
-        except:
-            print "Failed to start."
-            sys.exit(1)
+        except socket.error, msg:
+            print "Error initiating on normal port, will try only 4011"
         # Start Proxy at port 4011    
         try:
             class winProxyDHCPD(ProxyDHCPD):
@@ -78,6 +77,7 @@ class proxyService(win32serviceutil.ServiceFramework):
             proxyserver = winProxyDHCPD(configfile)
         except socket.error, msg:
             print "Error initiating Proxy, already running?"
+            sys.exit(1)
         except:
             traceback.print_exc()
             print("Failed to start proxy.")
@@ -96,9 +96,9 @@ class proxyService(win32serviceutil.ServiceFramework):
         else:
             thread.start_new_thread(server.run,())
             thread.start_new_thread(proxyserver.run,())
-            print "Will exit in 30 seconds"
+            print "Will exit in 10 seconds"
             try:
-                time.sleep(30)
+                time.sleep(10)
             except (KeyboardInterrupt,SystemExit):
                 server.loop = False
             server.loop = False 

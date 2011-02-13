@@ -15,15 +15,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 """
 
-import time
-import sys
-import os
+from dhcpd import DHCPD, ProxyDHCPD
 import getopt
-import thread
+import os
 import socket
+import sys
+import thread
+import time
 import traceback
 
-from dhcpd import DHCPD,ProxyDHCPD
 
 def usage():
     print """
