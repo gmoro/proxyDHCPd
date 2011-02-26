@@ -55,6 +55,12 @@ class parse_config(dict):
                         else:
                             print valuecheckmsg
                             sys.exit(2)
+                    elif item[0] in ['vendor_specific_information']:
+                        if self.stringCheck(value):
+                            self[section][item[0]] = value
+                        else:
+                            print valuecheckmsg
+                            sys.exit(2)
                     else:
                             print 'The item ' + item[0] + ' in the ' + section + ' section of ' + configfile + ' is unknown'
                             sys.exit(2)
