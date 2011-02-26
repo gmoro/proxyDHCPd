@@ -1,0 +1,40 @@
+proxyDHCPd
+
+proxyDHCPd is a proxy DHCP implementation made in pure python and is fully 
+compliant with the PXE specification. As a pure python project, it can run on 
+Windows, Linux and MacOS (or any other platform that supports python)
+
+But what is proxy DHCP?
+
+Proxy DHCP as defined at PXE specification [1] (see link below to the complete 
+PXE spec) is a form of send boot options to clients on a network, without 
+relying on DHCP server to hold this options.
+This approach solve the problem when you don't want or can't change the main 
+DHCP server to send boot options, thus separating the boot logic from the IP 
+serving logic.
+It could run on the same machine where the DHCP server lives, or in another 
+server in the same network, keeping the configuration even more flexible.
+
+[1] http://download.intel.com/design/archives/wfm/downloads/pxespec.pdf
+
+Running the server
+
+Just fire up the proxydhcpd executable with 'python proxydhcpd.py', the server will
+look for a configuration file called proxy.ini in the same folder as the
+executable, or you can set another config file on the command line, the options
+for the command line are:
+    -c file  : Specify alternate config file.
+    -d       : Run as daemon (ignored on Win32)
+    -p       : Run just the proxy server (when running on the same machine of 
+               the DHCP server)
+    -h       : Help
+   
+It still lacks an init.d script to start automatically (will work on it soon)
+
+Windows came with an service file to be installed, more instructions to this
+soon ;-)
+
+This program depends on pydhcplib, that can be found at:
+http://pydhcplib.tuxfamily.org/ 
+
+And hey! Its free open source software under GPL license :-)
