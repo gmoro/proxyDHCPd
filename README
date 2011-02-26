@@ -31,10 +31,10 @@ for the command line are:
    
 It still lacks an init.d script to start automatically (will work on it soon)
 
+The dhcplib module is actually a modified version of pydhcplib
+http://pydhcplib.tuxfamily.org/
+
 Windows came with an service file to be installed, more instructions to this
 soon ;-)
-
-This program depends on pydhcplib, that can be found at:
-http://pydhcplib.tuxfamily.org/ 
 
 And hey! Its free open source software under GPL license :-)

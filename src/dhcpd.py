@@ -24,8 +24,7 @@ import sys
 import net
 import traceback
 
-#this class was necessary for get the exceptions the right way
-class MyDhcpServer(DhcpNetwork) :
+class DhcpServerBase(DhcpNetwork) :
     def __init__(self, listen_address="0.0.0.0", client_listen_port=68,server_listen_port=67) :
         
         DhcpNetwork.__init__(self,listen_address,server_listen_port,client_listen_port)
@@ -79,14 +78,14 @@ class MyDhcpServer(DhcpNetwork) :
         else:
             self.logger.debug(message)
             
-class DHCPD(MyDhcpServer):
+class DHCPD(DhcpServerBase):
     loop = True
     def __init__(self,configfile='proxy.ini',client_port=68,server_port=67):
         
         self.client_port = int(client_port)
         self.server_port = int(server_port)
         self.config = parse_config(configfile)
-        MyDhcpServer.__init__(self,self.config['proxy']["listen_address"],self.client_port,self.server_port)
+        DhcpServerBase.__init__(self,self.config['proxy']["listen_address"],self.client_port,self.server_port)
         self.log('info',"Starting DHCP on ports client: %s, server: %s"%(self.client_port,self.server_port))
 
     def HandleDhcpDiscover(self, packet):
@@ -187,13 +186,6 @@ class ProxyDHCPD(DHCPD):
 
     def HandleDhcpInform(self, packet):
         self.log('debug','Noticed a DHCP Inform packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
-
-    #===========================================================================
-    # def run(self):
-    #    while self.loop:
-    #        self.GetNextDhcpPacket()
-    #    self.log('info','Service shutdown')
-    #===========================================================================
 
     def fmtHex(self,input):
         input=hex(input)
