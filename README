@@ -20,9 +20,8 @@ server in the same network, keeping the configuration even more flexible.
 Running the server
 
 Just fire up the proxydhcpd executable with 'python proxydhcpd.py', the server will
-look for a configuration file called proxy.ini in the same folder as the
-executable, or you can set another config file on the command line, the options
-for the command line are:
+look for a configuration file called proxy.ini in /etc/proxy.ini,or you can set 
+another config file on the command line, the options for the command line are:
     -c file  : Specify alternate config file.
     -d       : Run as daemon (ignored on Win32)
     -p       : Run just the proxy server (when running on the same machine of 

@@ -15,7 +15,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 """
 
-from dhcpd import DHCPD, ProxyDHCPD
+from proxydhcpd.dhcpd import DHCPD, ProxyDHCPD
 import getopt
 import os
 import socket
@@ -50,7 +50,7 @@ def main():
         sys.exit(2)
         
     # Set defaults, check options supplied
-    configfile = 'proxy.ini'
+    configfile = '/etc/proxyDHCPd/proxy.ini'
     daemon = False
     proxy_only= False
     
