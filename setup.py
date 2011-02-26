@@ -24,22 +24,22 @@ import psyco
 psyco.full()
 
 if os.name == 'nt':
-    setup(name='proxydhcp',
+    setup(name='proxydhcpd',
           version='0.1',
-          description = "",
+          description = "proxy DHCP server",
           long_description="",
           url='http://none',
           author='Guilherme Moro',
           author_email='guilherme.moro@gmail.com',
-          console=['proxydhp.py'],
+          console=['src/proxydhpcd.py'],
     	  service=[{'modules': ['proxyservice'], 'cmdline_style': 'pywin32'}],
           options={"py2exe": {
                         "optimize": 2,
                         "bundle_files": 1
                         }
                    },
-          data_files=[('',['proxy.ini'])],
+          data_files=[('',['src/proxy.ini'])],
           zipfile = None
           )
 else:
-    print "I'll get to ya...."
+    print "soon!"
