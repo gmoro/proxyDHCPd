@@ -33,7 +33,7 @@ if os.name == 'nt':
           author='Guilherme Moro',
           author_email='guilherme.moro@gmail.com',
           console=['proxydhpcd.py'],
-    	  service=[{'modules': ['proxyservice'], 'cmdline_style': 'pywin32'}],
+		  service=[{'modules': ['proxyservice'], 'cmdline_style': 'pywin32'}],
           options={"py2exe": {
                         "optimize": 2,
                         "bundle_files": 1
@@ -43,15 +43,17 @@ if os.name == 'nt':
           zipfile = None
           )
 else:
-      setup(name='proxydhcpd',
-      version="0.1",
-      license='GPL v2',
-      description="proxy DHCP server",
-      author='Guilherme Moro',
-      author_email='guilherme.moro@gmail.com',
-      url='http://github.com/gmoro/proxyDHCPd',
-      packages=['proxydhcpd',"proxydhcpd.dhcplib"],
-      scripts=['proxydhcpd.py'],
-      data_files=[("/etc/proxyDHCPd",["proxy.ini"])]
-       
-      )
+	os.system("sed 's:usr:"+sys.prefix[1:]+":' bin/proxydhcpd.in >bin/proxydhcpd")
+	os.system("sed 's:usr:"+sys.prefix[1:]+":' scripts/proxydhcpd.sh.in >scripts/proxydhcpd")
+	setup(name='proxydhcpd',
+    version="0.1",
+    license='GPL v2',
+    description="proxy DHCP server",
+    author='Guilherme Moro',
+    author_email='guilherme.moro@gmail.com',
+    url='http://github.com/gmoro/proxyDHCPd',
+    packages=['proxydhcpd',"proxydhcpd.dhcplib"],
+    scripts=['bin/proxydhcpd','proxydhcpd.py'],
+    data_files=[("/etc/proxyDHCPd",["proxy.ini"]),
+			  ("/etc/init.d",["scripts/proxydhcp"])]
+    )

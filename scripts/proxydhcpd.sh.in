@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# chkconfig: 235 90 12
+# description: proxy DHCP server
+#
+
+# Get function from functions library
+. /etc/init.d/functions
+
+PREFIX='/usr'
+
+# Start the service
+start() {
+        echo -n "Starting proxy DHCP server: "
+        python $PREFIX/bin/proxydhcp.py &
+        ### Create the lock file ###
+        touch /var/lock/subsys/proxydhcpd
+        success $"proxy DHCP server startup"
+        echo
+}
+
+stop() {
+        echo -n "Stopping proxy DHCP server: "
+        killproc python $PREFIX/bin/proxydhcpd.py
+        ### Now, delete the lock file ###
+        rm -f /var/lock/subsys/proxydhcpd
+        echo
+}
+
+### main logic ###
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  status)
+        status proxydhcpd
+        ;;
+  restart|reload)
+        stop
+        start
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|restart|reload|status}"
+        exit 1
+esac
+
+exit 0

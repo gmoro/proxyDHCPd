@@ -1,0 +1,3 @@
+#! /bin/sh
+PREFIX='/usr'
+python $PREFIX/bin/proxydhcpd.py
