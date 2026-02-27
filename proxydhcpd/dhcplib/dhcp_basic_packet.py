@@ -140,9 +140,7 @@ class DhcpBasicPacket:
 
         packet = self.packet_data[:240] + options
         packet.append(255) # add end option
-        pack_fmt = str(len(packet))+"c"
-
-        packet = map(chr,packet)
+        pack_fmt = str(len(packet))+"B"
         
         return pack(pack_fmt,*packet)
 
@@ -154,9 +152,9 @@ class DhcpBasicPacket:
 
         if (not data) : return False
         # we transform all data to int list
-        unpack_fmt = str(len(data)) + "c"
+        unpack_fmt = str(len(data)) + "B"
         for i in unpack(unpack_fmt,data):
-            self.packet_data.append(ord(i))
+            self.packet_data.append(i)
 
         # Some servers or clients don't place magic cookie immediately
         # after headers and begin options fields only after magic.

@@ -52,7 +52,7 @@ class parse_config(dict):
                         else:
                             print(valuecheckmsg)
                             sys.exit(2)
-                    elif item[0] in ['filename']:
+                    elif item[0] in ['filename', 'filename_efi32', 'filename_efi64']:
                         if self.stringCheck(value):
                             self[section][item[0]] = value
                         else:

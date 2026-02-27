@@ -106,10 +106,10 @@ class DHCPD(DhcpServerBase):
                     'yiaddr':[0,0,0,0],
                     'ciaddr':[0,0,0,0]
                     } )
-                responsepacket.SetOption("vendor_class_identifier", list(map(ord, "PXEClient")))
+                responsepacket.SetOption("vendor_class_identifier", b"PXEClient")
                 responsepacket.SetOption("server_identifier",map(int, self.config['proxy']["listen_address"].split(".")))
                 if self.config['proxy']['vendor_specific_information']:
-                    responsepacket.SetOption('vendor_specific_information', list(map(ord, self.config['proxy']['vendor_specific_information'])))
+                    responsepacket.SetOption('vendor_specific_information', self.config['proxy']['vendor_specific_information'].encode('ascii'))
                     
                 responsepacket.DeleteOption('ip_address_lease_time')
                 self.SendDhcpPacketTo(responsepacket, "255.255.255.255", self.client_port)
@@ -142,6 +142,29 @@ class ProxyDHCPD(DHCPD):
         self.server_port = server_port
         DHCPD.__init__(self,configfile,server_port=server_port)
 
+    def get_boot_filename(self, packet):
+        default_file = self.config['proxy']['filename']
+        if not packet.IsOption('client_system'):
+            return default_file
+            
+        arch_opt = packet.GetOption('client_system')
+        if not arch_opt:
+            return default_file
+            
+        # Option 93 is unassigned natively so it comes back as a list of integers
+        arch_list = arch_opt
+        if hasattr(arch_opt, 'list'):
+            arch_list = arch_opt.list()
+            
+        if len(arch_list) >= 2:
+            arch = arch_list[1]
+            if arch == 6:
+                return self.config['proxy'].get('filename_efi32', default_file)
+            elif arch in [7, 9]:
+                return self.config['proxy'].get('filename_efi64', default_file)
+                
+        return default_file
+
     def HandleDhcpDiscover(self, packet):
         self.log('debug','Noticed a DHCP Discover packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
     
@@ -150,6 +173,8 @@ class ProxyDHCPD(DHCPD):
             
             class_identifier = strlist(packet.GetOption('vendor_class_identifier'))
             if class_identifier.str()[0:9] == "PXEClient":
+                boot_filename = self.get_boot_filename(packet)
+                
                 responsepacket = DhcpPacket()
                 responsepacket.CreateDhcpAckPacketFrom(packet)
                 responsepacket.SetMultipleOptions( {
@@ -160,15 +185,15 @@ class ProxyDHCPD(DHCPD):
                     'giaddr': packet.GetOption("giaddr"),
                     'yiaddr':[0,0,0,0],
                     'siaddr': self.config['proxy']['tftpd'],
-                    'file': list(map(ord, (self.config['proxy']['filename'].ljust(128,"\0")))),
-                    'vendor_class_identifier': list(map(ord, "PXEClient")),
+                    'file': boot_filename.ljust(128, "\0").encode('ascii'),
+                    'vendor_class_identifier': b"PXEClient",
                     'server_identifier': map(int, self.config['proxy']["listen_address"].split(".")), # This is incorrect but apparently makes certain Intel cards happy
-                    'bootfile_name': list(map(ord, self.config['proxy']['filename'] + "\0")),
+                    'bootfile_name': (boot_filename + "\0").encode('ascii'),
                     'tftp_server_name': self.config['proxy']['tftpd']
                 } )
                 
-                if self.config['vendor_specific_information']:
-                    responsepacket.setOption('vendor_specific_information', list(map(ord, self.config['vendor_specific_information'])))
+                if self.config['proxy'].get('vendor_specific_information'):
+                    responsepacket.setOption('vendor_specific_information', self.config['proxy']['vendor_specific_information'].encode('ascii'))
                     
                 responsepacket.DeleteOption('ip_address_lease_time')
                 self.SendDhcpPacketTo(responsepacket, ".".join(map(str,packet.GetOption('ciaddr'))), self.client_port)
