@@ -191,7 +191,7 @@ class ProxyDHCPD(DHCPD):
                 } )
                 
                 if self.config['proxy'].get('vendor_specific_information'):
-                    responsepacket.setOption('vendor_specific_information', self.config['proxy']['vendor_specific_information'].encode('ascii'))
+                    responsepacket.SetOption('vendor_specific_information', self.config['proxy']['vendor_specific_information'].encode('ascii'))
                     
                 responsepacket.DeleteOption('ip_address_lease_time')
                 self.SendDhcpPacketTo(responsepacket, ".".join(list(map(str,packet.GetOption('ciaddr')))), self.client_port)
