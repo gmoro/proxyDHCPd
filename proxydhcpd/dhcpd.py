@@ -64,15 +64,20 @@ class DhcpServerBase(DhcpNetwork) :
             if sys.platform == 'win32':
                 self.dhcp_socket.bind((self.listen_address,self.listen_port))
             else:
-                # Linux and windows differ on the way they bind to broadcast sockets
-                #ifname = net.get_dev_name(self.listen_address)
-                ifname = "virbr1" # <-- DIGITAL FAVELA OVERRIDE
+                ifname = self.config['proxy'].get('interface', '')
+                if not ifname:
+                    ifname = net.get_dev_name(self.listen_address)
+                
                 SO_BINDTODEVICE = getattr(socket, 'SO_BINDTODEVICE', 25)
                 self.dhcp_socket.setsockopt(socket.SOL_SOCKET, SO_BINDTODEVICE, (ifname+'\0').encode('utf-8'))
                 self.dhcp_socket.bind(('',self.listen_port))
-                print((ifname+'\0').encode('utf-8'))
+        
         except socket.error as msg :
-            self.log('info',"Error creating socket for server: \n %s"%str(msg))
+            self.logger.critical("FATAL: Error creating socket or binding to interface %s on port %s: %s" % (self.listen_address, self.listen_port, str(msg)))
+            sys.exit(1)
+        except Exception as e:
+            self.logger.critical("FATAL: Unexpected error initializing DHCP socket: %s" % str(e))
+            sys.exit(1)
         
         self.loop = True
         

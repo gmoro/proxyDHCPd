@@ -126,8 +126,13 @@ def main():
     # Start loop
     if server and proxyserver:
         server.logger.info('Listening on ' + server.config['proxy']['listen_address'])
-        threading.Thread(target=server.run).start()
-    threading.Thread(target=proxyserver.run).start()
+        t1 = threading.Thread(target=server.run)
+        t1.daemon = True
+        t1.start()
+    
+    t2 = threading.Thread(target=proxyserver.run)
+    t2.daemon = True
+    t2.start()
 
     while proxyserver.loop and server.loop:
         try:
