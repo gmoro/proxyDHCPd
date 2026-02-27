@@ -50,16 +50,27 @@ class DhcpServerBase(DhcpNetwork) :
             self.logger.addHandler(self.syslogLog)
         
         try :
+            #self.dhcp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            #self.dhcp_socket.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1)
             self.dhcp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            
+            # --- THE FAVELA PORT SHARING HACK ---
+            self.dhcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            if hasattr(socket, 'SO_REUSEPORT'):
+                self.dhcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+            # ------------------------------------
+            
             self.dhcp_socket.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1)
             if sys.platform == 'win32':
                 self.dhcp_socket.bind((self.listen_address,self.listen_port))
             else:
                 # Linux and windows differ on the way they bind to broadcast sockets
-                ifname = net.get_dev_name(self.listen_address)
+                #ifname = net.get_dev_name(self.listen_address)
+                ifname = "virbr1" # <-- DIGITAL FAVELA OVERRIDE
                 SO_BINDTODEVICE = getattr(socket, 'SO_BINDTODEVICE', 25)
                 self.dhcp_socket.setsockopt(socket.SOL_SOCKET, SO_BINDTODEVICE, (ifname+'\0').encode('utf-8'))
                 self.dhcp_socket.bind(('',self.listen_port))
+                print((ifname+'\0').encode('utf-8'))
         except socket.error as msg :
             self.log('info',"Error creating socket for server: \n %s"%str(msg))
         
@@ -107,29 +118,29 @@ class DHCPD(DhcpServerBase):
                     'ciaddr':[0,0,0,0]
                     } )
                 responsepacket.SetOption("vendor_class_identifier", b"PXEClient")
-                responsepacket.SetOption("server_identifier",map(int, self.config['proxy']["listen_address"].split(".")))
+                responsepacket.SetOption("server_identifier", list(map(int, self.config['proxy']["listen_address"].split("."))))
                 if self.config['proxy']['vendor_specific_information']:
                     responsepacket.SetOption('vendor_specific_information', self.config['proxy']['vendor_specific_information'].encode('ascii'))
                     
                 responsepacket.DeleteOption('ip_address_lease_time')
                 self.SendDhcpPacketTo(responsepacket, "255.255.255.255", self.client_port)
-                self.log('info','******Responded to PXE Discover from ' + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
+                self.log('info','******Responded to PXE Discover from ' + ":".join(list(map(self.fmtHex,packet.GetHardwareAddress()))))
             else:
-                self.log('debug','Noticed a non-boot DHCP Discover packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
+                self.log('debug','Noticed a non-boot DHCP Discover packet from '  + ":".join(list(map(self.fmtHex,packet.GetHardwareAddress()))))
         else:
-            self.log('debug','Noticed a non-boot DHCP Discover packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
+            self.log('debug','Noticed a non-boot DHCP Discover packet from '  + ":".join(list(map(self.fmtHex,packet.GetHardwareAddress()))))
 
     def HandleDhcpRequest(self, packet):
-        self.log('debug','Noticed a DHCP Request (port 67) packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
+        self.log('debug','Noticed a DHCP Request (port 67) packet from '  + ":".join(list(map(self.fmtHex,packet.GetHardwareAddress()))))
 
     def HandleDhcpDecline(self, packet):
-        self.log('debug','Noticed a DHCP Decline packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
+        self.log('debug','Noticed a DHCP Decline packet from '  + ":".join(list(map(self.fmtHex,packet.GetHardwareAddress()))))
 
     def HandleDhcpRelease(self, packet):
-        self.log('debug','Noticed a DHCP Release packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
+        self.log('debug','Noticed a DHCP Release packet from '  + ":".join(list(map(self.fmtHex,packet.GetHardwareAddress()))))
 
     def HandleDhcpInform(self, packet):
-        self.log('debug','Noticed a DHCP Inform packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
+        self.log('debug','Noticed a DHCP Inform packet from '  + ":".join(list(map(self.fmtHex,packet.GetHardwareAddress()))))
 
     def fmtHex(self,input):
         return f"{input:02x}"
@@ -166,7 +177,7 @@ class ProxyDHCPD(DHCPD):
         return default_file
 
     def HandleDhcpDiscover(self, packet):
-        self.log('debug','Noticed a DHCP Discover packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
+        self.log('debug','Noticed a DHCP Discover packet from '  + ":".join(list(map(self.fmtHex,packet.GetHardwareAddress()))))
     
     def HandleDhcpRequest(self, packet):
         if packet.IsOption('vendor_class_identifier'):
@@ -187,7 +198,7 @@ class ProxyDHCPD(DHCPD):
                     'siaddr': self.config['proxy']['tftpd'],
                     'file': boot_filename.ljust(128, "\0").encode('ascii'),
                     'vendor_class_identifier': b"PXEClient",
-                    'server_identifier': map(int, self.config['proxy']["listen_address"].split(".")), # This is incorrect but apparently makes certain Intel cards happy
+                    'server_identifier': list(map(int, self.config['proxy']["listen_address"].split("."))), # This is incorrect but apparently makes certain Intel cards happy
                     'bootfile_name': (boot_filename + "\0").encode('ascii'),
                     'tftp_server_name': self.config['proxy']['tftpd']
                 } )
@@ -196,17 +207,17 @@ class ProxyDHCPD(DHCPD):
                     responsepacket.setOption('vendor_specific_information', self.config['proxy']['vendor_specific_information'].encode('ascii'))
                     
                 responsepacket.DeleteOption('ip_address_lease_time')
-                self.SendDhcpPacketTo(responsepacket, ".".join(map(str,packet.GetOption('ciaddr'))), self.client_port)
-                self.log('info','****Responded to PXE request (port 4011 ) from ' + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
+                self.SendDhcpPacketTo(responsepacket, ".".join(list(map(str,packet.GetOption('ciaddr')))), self.client_port)
+                self.log('info','****Responded to PXE request (port 4011 ) from ' + ":".join(list(map(self.fmtHex,packet.GetHardwareAddress()))))
 
     def HandleDhcpDecline(self, packet):
-        self.log('debug','Noticed a DHCP Decline packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
+        self.log('debug','Noticed a DHCP Decline packet from '  + ":".join(list(map(self.fmtHex,packet.GetHardwareAddress()))))
 
     def HandleDhcpRelease(self, packet):
-        self.log('debug','Noticed a DHCP Release packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
+        self.log('debug','Noticed a DHCP Release packet from '  + ":".join(list(map(self.fmtHex,packet.GetHardwareAddress()))))
 
     def HandleDhcpInform(self, packet):
-        self.log('debug','Noticed a DHCP Inform packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
+        self.log('debug','Noticed a DHCP Inform packet from '  + ":".join(list(map(self.fmtHex,packet.GetHardwareAddress()))))
 
     def fmtHex(self,input):
         return f"{input:02x}"

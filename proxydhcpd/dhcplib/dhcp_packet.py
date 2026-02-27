@@ -155,7 +155,7 @@ class DhcpPacket(DhcpBasicPacket):
             value = value.strip().split(',')
             tmp = []
             for each in value:
-                if DhcpOptions.has_key(each) : tmp.append(DhcpOptions[each])
+                if each in DhcpOptions : tmp.append(DhcpOptions[each])
             return tmp
         elif  p=='dhcp_message_type' :
             try :
@@ -170,7 +170,7 @@ class DhcpPacket(DhcpBasicPacket):
         if option_type == "ipv4" :
             # this is a single ip address
             try :
-                binary_value = map(int,value.split("."))
+                binary_value = list(map(int,value.split(".")))
             except ValueError : return False
             
         elif option_type == "ipv4+" :

@@ -48,7 +48,7 @@ class parse_config(dict):
                             sys.exit(2)
                     elif item[0] == 'tftpd':
                         if self.ipAddressCheck(value):
-                            self[section][item[0]] = map(int, value.split("."))
+                            self[section][item[0]] = list(map(int, value.split(".")))
                         else:
                             print(valuecheckmsg)
                             sys.exit(2)

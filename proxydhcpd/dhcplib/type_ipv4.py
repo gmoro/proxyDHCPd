@@ -51,7 +51,7 @@ class ipv4:
         if not self.CheckNumList(self._ip_numlist) : raise ValueError("ipv4 list argument is not an valid ip ")
     # Convert String type ip to Long type ip
     def _StringToLong(self) :
-        ip_numlist = map(int,self._ip_string.split('.'))
+        ip_numlist = list(map(int,self._ip_string.split('.')))
         self._ip_long = ip_numlist[3] + ip_numlist[2]*256 + ip_numlist[1]*256*256 + ip_numlist[0]*256*256*256
         if not self.CheckNumList(self._ip_numlist) : raise ValueError("ipv4 list argument is not an valid ip ")
     # Convert NumList type ip to String type ip
