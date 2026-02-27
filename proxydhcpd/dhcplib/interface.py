@@ -62,10 +62,15 @@ class interface:
 
     def _call(self, ifname, func, ip = None):
 
-        if ip is None:
-            data = (ifname + '\0'*32)[:32]
+        if isinstance(ifname, str):
+            ifreq = ifname.encode('utf-8')
         else:
-            ifreq = (ifname + '\0' * self.IFNAMSIZ)[:self.IFNAMSIZ]
+            ifreq = ifname
+
+        if ip is None:
+            data = (ifreq + b'\0'*32)[:32]
+        else:
+            ifreq = (ifreq + b'\0' * self.IFNAMSIZ)[:self.IFNAMSIZ]
             data = struct.pack("16si4s10x", ifreq, socket.AF_INET, socket.inet_aton(ip))
 
         try:
@@ -78,7 +83,7 @@ class interface:
     def getInterfaceList(self):
         """ Get all interface names in a list """
         # get interface list
-        buffer = array.array('c', '\0' * 1024)
+        buffer = array.array('B', b'\0' * 1024)
         ifconf = struct.pack("iP", buffer.buffer_info()[1], buffer.buffer_info()[0])
         result = self._ioctl(self.SIOCGIFCONF, ifconf)
 
@@ -86,10 +91,10 @@ class interface:
         iflist = []
         size, ptr = struct.unpack("iP", result)
         for idx in range(0, size, 32):
-            ifconf = buffer.tostring()[idx:idx+32]
+            ifconf = buffer.tobytes()[idx:idx+32]
             name, dummy = struct.unpack("16s16s", ifconf)
-            name, dummy = name.split('\0', 1)
-            iflist.append(name)
+            name, dummy = name.split(b'\0', 1)
+            iflist.append(name.decode('utf-8'))
 
         return iflist
 
@@ -149,7 +154,11 @@ class interface:
 
     def setStatusDown(self, ifname):
         """ Set interface status (UP/DOWN) """
-        ifreq = (ifname + '\0' * self.IFNAMSIZ)[:self.IFNAMSIZ]
+        if isinstance(ifname, str):
+            ifreq = ifname.encode('utf-8')
+        else:
+            ifreq = ifname
+        ifreq = (ifreq + b'\0' * self.IFNAMSIZ)[:self.IFNAMSIZ]
 
         result = self._call(ifname, self.SIOCGIFFLAGS)
         flags, = struct.unpack('H', result[16:18])
@@ -162,7 +171,11 @@ class interface:
 
     def setStatusUp(self, ifname):
         """ Set interface status (UP/DOWN) """
-        ifreq = (ifname + '\0' * self.IFNAMSIZ)[:self.IFNAMSIZ]
+        if isinstance(ifname, str):
+            ifreq = ifname.encode('utf-8')
+        else:
+            ifreq = ifname
+        ifreq = (ifreq + b'\0' * self.IFNAMSIZ)[:self.IFNAMSIZ]
 
         flags = self.IFF_UP
         flags |= self.IFF_RUNNING
@@ -178,7 +191,11 @@ class interface:
 
     def setMTU(self, ifname, mtu):
         """ Set the MTU size of an interface """
-        ifreq = (ifname + '\0' * self.IFNAMSIZ)[:self.IFNAMSIZ]
+        if isinstance(ifname, str):
+            ifreq = ifname.encode('utf-8')
+        else:
+            ifreq = ifname
+        ifreq = (ifreq + b'\0' * self.IFNAMSIZ)[:self.IFNAMSIZ]
 
         data = struct.pack("16si", ifreq, mtu)
         result = self._ioctl(self.SIOCSIFMTU, data)

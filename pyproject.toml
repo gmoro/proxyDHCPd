@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "proxydhcpd"
+version = "0.2.0"
+description = "A proxy DHCP server in pure Python 3"
+authors = [
+    { name = "Guilherme Moro", email = "guilherme.moro@gmail.com" },
+]
+readme = "README"
+requires-python = ">=3.6"
+license = {text = "GPL-2.0"}
+dependencies = []
+
+[tool.setuptools]
+packages = ["proxydhcpd", "proxydhcpd.dhcplib"]
+
+[project.scripts]
+proxydhcpd = "proxydhcpd.cli:main"
+
+[tool.setuptools.package-data]
+"*" = ["proxy.ini"]

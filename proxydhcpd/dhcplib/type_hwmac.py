@@ -33,16 +33,16 @@ class hwmac:
             self._hw_numlist = value
             self._CheckNumList()
             self._NumlistToString()
-        else : raise TypeError , 'hwmac init : Valid types are str and list'
+        else : raise TypeError('hwmac init : Valid types are str and list')
 
 
 
     # Check if _hw_numlist is valid and raise error if not.
     def _CheckNumList(self) :
-        if len(self._hw_numlist) != 6 : raise ValueError , "hwmac : wrong list length."
+        if len(self._hw_numlist) != 6 : raise ValueError("hwmac : wrong list length.")
         for part in self._hw_numlist :
-            if type (part) != int : raise TypeError , "hwmac : each element of list must be int"
-            if part < 0 or part > 255 : raise ValueError , "hwmac : need numbers between 0 and 255."
+            if type (part) != int : raise TypeError("hwmac : each element of list must be int")
+            if part < 0 or part > 255 : raise ValueError("hwmac : need numbers between 0 and 255.")
         return True
 
 
@@ -55,7 +55,7 @@ class hwmac:
             
     # Convert NumList type ip to String type ip
     def _NumlistToString(self) :
-        self._hw_string = ":".join(map(hexlify,map(chr,self._hw_numlist)))
+        self._hw_string = ":".join([hexlify(bytes([x])).decode('utf-8') for x in self._hw_numlist])
 
     # Convert String type ip to NumList type ip
     # return ip string
@@ -72,13 +72,12 @@ class hwmac:
     def __repr__(self) :
         return self._hw_string
 
-    def __cmp__(self,other) :
-        if self._hw_string == other : return 0
-        return 1
+    def __eq__(self,other) :
+        return self._hw_string == other
 
-    def __nonzero__(self) :
-        if self._hw_string != "00:00:00:00:00:00" : return 1
-        return 0
+    def __bool__(self) :
+        if self._hw_string != "00:00:00:00:00:00" : return True
+        return False
 
 
 

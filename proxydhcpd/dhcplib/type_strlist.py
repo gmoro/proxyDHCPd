@@ -25,10 +25,14 @@ class strlist :
             self._str = data
             for each in range(len(self._str)) :
                 self._list.append(ord(self._str[each]))
+        elif str_type == bytes :
+            self._str = data.decode("utf-8", "ignore")
+            for each in range(len(data)) :
+                self._list.append(data[each])
         elif str_type == list :
             self._list = data
             self._str = "".join(map(chr,self._list))
-        else : raise TypeError , 'strlist init : Valid types are str and  list of int'
+        else : raise TypeError('strlist init : Valid types are str, bytes, and list of int')
 
     # return string
     def str(self) :
@@ -53,13 +57,12 @@ class strlist :
     def __repr__(self) :
         return self._str
 
-    def __nonzero__(self) :
-        if self._str != "" : return 1
-        return 0
+    def __bool__(self) :
+        if self._str != "" : return True
+        return False
 
-    def __cmp__(self,other) :
-        if self._str == other : return 0
-        return 1
+    def __eq__(self,other) :
+        return self._str == other
 		    
 
 

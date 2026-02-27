@@ -18,11 +18,11 @@
 import operator
 from struct import unpack
 from struct import pack
-from dhcp_basic_packet import *
-from dhcp_constants import *
-from type_ipv4 import ipv4
-from type_strlist import strlist
-from type_hwmac import hwmac
+from .dhcp_basic_packet import *
+from .dhcp_constants import *
+from .type_ipv4 import ipv4
+from .type_strlist import strlist
+from .type_hwmac import hwmac
 import sys
 
 class DhcpPacket(DhcpBasicPacket):

@@ -15,13 +15,13 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 """
 
-from proxyconfig import parse_config
-from dhcplib.dhcp_network import *
-from dhcplib.dhcp_packet import *
+from .proxyconfig import parse_config
+from .dhcplib.dhcp_network import *
+from .dhcplib.dhcp_packet import *
 import logging
 import logging.handlers
 import sys
-import net
+from . import net
 import traceback
 
 class DhcpServerBase(DhcpNetwork) :
@@ -57,9 +57,10 @@ class DhcpServerBase(DhcpNetwork) :
             else:
                 # Linux and windows differ on the way they bind to broadcast sockets
                 ifname = net.get_dev_name(self.listen_address)
-                self.dhcp_socket.setsockopt(socket.SOL_SOCKET,IN.SO_BINDTODEVICE,ifname+'\0')
+                SO_BINDTODEVICE = getattr(socket, 'SO_BINDTODEVICE', 25)
+                self.dhcp_socket.setsockopt(socket.SOL_SOCKET, SO_BINDTODEVICE, (ifname+'\0').encode('utf-8'))
                 self.dhcp_socket.bind(('',self.listen_port))
-        except socket.error, msg :
+        except socket.error as msg :
             self.log('info',"Error creating socket for server: \n %s"%str(msg))
         
         self.loop = True
@@ -89,10 +90,10 @@ class DHCPD(DhcpServerBase):
         self.log('info',"Starting DHCP on ports client: %s, server: %s"%(self.client_port,self.server_port))
 
     def HandleDhcpDiscover(self, packet):
-        #print packet.str()
+        #print(packet.str())
         if packet.IsOption('vendor_class_identifier'):
             class_identifier = strlist(packet.GetOption('vendor_class_identifier'))
-            print class_identifier
+            print(class_identifier)
             if class_identifier.str()[0:9] == "PXEClient":
                 responsepacket = DhcpPacket()
                 responsepacket.CreateDhcpOfferPacketFrom(packet)
@@ -105,10 +106,10 @@ class DHCPD(DhcpServerBase):
                     'yiaddr':[0,0,0,0],
                     'ciaddr':[0,0,0,0]
                     } )
-                responsepacket.SetOption("vendor_class_identifier", map(ord, "PXEClient"))
+                responsepacket.SetOption("vendor_class_identifier", list(map(ord, "PXEClient")))
                 responsepacket.SetOption("server_identifier",map(int, self.config['proxy']["listen_address"].split(".")))
                 if self.config['proxy']['vendor_specific_information']:
-                    responsepacket.SetOption('vendor_specific_information', map(ord, self.config['proxy']['vendor_specific_information']))
+                    responsepacket.SetOption('vendor_specific_information', list(map(ord, self.config['proxy']['vendor_specific_information'])))
                     
                 responsepacket.DeleteOption('ip_address_lease_time')
                 self.SendDhcpPacketTo(responsepacket, "255.255.255.255", self.client_port)
@@ -131,12 +132,7 @@ class DHCPD(DhcpServerBase):
         self.log('debug','Noticed a DHCP Inform packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
 
     def fmtHex(self,input):
-        input=hex(input)
-        input=str(input)
-        input=input.replace("0x","")
-        if len(input)==1:
-            input="0"+input
-        return input
+        return f"{input:02x}"
 
 class ProxyDHCPD(DHCPD):
     
@@ -164,15 +160,15 @@ class ProxyDHCPD(DHCPD):
                     'giaddr': packet.GetOption("giaddr"),
                     'yiaddr':[0,0,0,0],
                     'siaddr': self.config['proxy']['tftpd'],
-                    'file': map(ord, (self.config['proxy']['filename'].ljust(128,"\0"))),
-                    'vendor_class_identifier': map(ord, "PXEClient"),
+                    'file': list(map(ord, (self.config['proxy']['filename'].ljust(128,"\0")))),
+                    'vendor_class_identifier': list(map(ord, "PXEClient")),
                     'server_identifier': map(int, self.config['proxy']["listen_address"].split(".")), # This is incorrect but apparently makes certain Intel cards happy
-                    'bootfile_name': map(ord, self.config['proxy']['filename'] + "\0"),
+                    'bootfile_name': list(map(ord, self.config['proxy']['filename'] + "\0")),
                     'tftp_server_name': self.config['proxy']['tftpd']
                 } )
                 
                 if self.config['vendor_specific_information']:
-                    responsepacket.setOption('vendor_specific_information', map(ord, self.config['vendor_specific_information']))
+                    responsepacket.setOption('vendor_specific_information', list(map(ord, self.config['vendor_specific_information'])))
                     
                 responsepacket.DeleteOption('ip_address_lease_time')
                 self.SendDhcpPacketTo(responsepacket, ".".join(map(str,packet.GetOption('ciaddr'))), self.client_port)
@@ -188,9 +184,4 @@ class ProxyDHCPD(DHCPD):
         self.log('debug','Noticed a DHCP Inform packet from '  + ":".join(map(self.fmtHex,packet.GetHardwareAddress())))
 
     def fmtHex(self,input):
-        input=hex(input)
-        input=str(input)
-        input=input.replace("0x","")
-        if len(input)==1:
-            input="0"+input
-        return input
+        return f"{input:02x}"

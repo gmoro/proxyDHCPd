@@ -18,7 +18,7 @@
 import operator
 from struct import unpack
 from struct import pack
-from dhcp_constants import *
+from .dhcp_constants import *
 import sys
 
 

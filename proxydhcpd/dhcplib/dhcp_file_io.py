@@ -16,8 +16,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-import dhcp_packet
-import IN
+from . import dhcp_packet
+
 
 class DhcpFileIO() :
     def __init__(self) :

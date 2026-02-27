@@ -17,19 +17,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 import os
 import sys
 import re
-import ConfigParser
+try:
+    import configparser as ConfigParser
+except:
+    import ConfigParser
 
 class parse_config(dict):
     cp = ConfigParser.ConfigParser()
     def __init__(self,configfile='proxy.ini'):
         if os.access(configfile, os.R_OK) == False:
-            print "Unable to read config file: %s" % configfile
+            print("Unable to read config file: %s" % configfile)
             sys.exit(2)
         try:
             self.cp.read(configfile)
         except:
             ConfigParser
-            print 'Unable to parse config file: %s' % configfile
+            print('Unable to parse config file: %s' % configfile)
             sys.exit(2)
         for section in self.cp.sections():
             if section in ['proxy', 'pxe']:
@@ -41,31 +44,31 @@ class parse_config(dict):
                         if self.listenAddressCheck(value):
                             self[section][item[0]] = value
                         else:
-                            print valuecheckmsg
+                            print(valuecheckmsg)
                             sys.exit(2)
                     elif item[0] == 'tftpd':
                         if self.ipAddressCheck(value):
                             self[section][item[0]] = map(int, value.split("."))
                         else:
-                            print valuecheckmsg
+                            print(valuecheckmsg)
                             sys.exit(2)
                     elif item[0] in ['filename']:
                         if self.stringCheck(value):
                             self[section][item[0]] = value
                         else:
-                            print valuecheckmsg
+                            print(valuecheckmsg)
                             sys.exit(2)
                     elif item[0] in ['vendor_specific_information']:
                         if self.stringCheck(value):
                             self[section][item[0]] = value
                         else:
-                            print valuecheckmsg
+                            print(valuecheckmsg)
                             sys.exit(2)
                     else:
-                            print 'The item ' + item[0] + ' in the ' + section + ' section of ' + configfile + ' is unknown'
+                            print('The item ' + item[0] + ' in the ' + section + ' section of ' + configfile + ' is unknown')
                             sys.exit(2)
             else:
-                print 'The ' + section + ' section in ' + configfile + ' is unknown'
+                print('The ' + section + ' section in ' + configfile + ' is unknown')
                 exit(2)
             self['proxy']['client_listen_port'] = "68"
             self['proxy']['server_listen_port'] = "67"
@@ -99,4 +102,4 @@ class parse_config(dict):
             
 if __name__ == "__main__":
     configp=parse_config()
-    print configp
+    print(configp)

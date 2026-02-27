@@ -1,0 +1,28 @@
+[Unit]
+Description=Python 3 Proxy DHCP Server
+After=network.target
+
+[Service]
+Type=simple
+# Hardened Security Defaults
+DynamicUser=yes
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+NoNewPrivileges=yes
+
+# We run as a regular service instead of using the built-in fork daemon (-d)
+ExecStart=/usr/bin/proxydhcpd -c /etc/proxyDHCPd/proxy.ini
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
