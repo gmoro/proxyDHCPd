@@ -25,36 +25,21 @@ from . import net
 import traceback
 
 class DhcpServerBase(DhcpNetwork) :
-    def __init__(self, listen_address="0.0.0.0", client_listen_port=68,server_listen_port=67) :
+    def __init__(self, listen_address="0.0.0.0", client_listen_port=68,server_listen_port=67, interface="") :
         
         DhcpNetwork.__init__(self,listen_address,server_listen_port,client_listen_port)
         
         self.logger = logging.getLogger('proxydhcp')
-        #self.logger.setLevel(logging.INFO)
-        self.logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s %(levelname)s ProxyDHCP: %(message)s')  
-        self.consoleLog = logging.StreamHandler()
-        self.consoleLog.setFormatter(formatter)
-        self.logger.addHandler(self.consoleLog)
-        if sys.platform == 'win32':
-            self.fileLog = logging.FileHandler('proxy.log')
-            self.fileLog.setFormatter(formatter)
-            self.logger.addHandler(self.fileLog)
-        else:
-            if sys.platform == 'darwin':
-                self.syslogLog = logging.handlers.SysLogHandler("/var/run/syslog")
-            else:
-                self.syslogLog = logging.handlers.SysLogHandler("/dev/log")
-            self.syslogLog.setFormatter(formatter)
-            self.syslogLog.setLevel(logging.INFO)
-            self.logger.addHandler(self.syslogLog)
         
         try :
             #self.dhcp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             #self.dhcp_socket.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1)
             self.dhcp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             
-            # --- THE FAVELA PORT SHARING HACK ---
+            # --- PORT SHARING HACK ---
+            # Allow binding to the same port as another process (e.g. dnsmasq)
+            # dnsmasq would have to have this option set as well
+            # otherwise we would need to use macvtap
             self.dhcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             if hasattr(socket, 'SO_REUSEPORT'):
                 self.dhcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
@@ -64,12 +49,11 @@ class DhcpServerBase(DhcpNetwork) :
             if sys.platform == 'win32':
                 self.dhcp_socket.bind((self.listen_address,self.listen_port))
             else:
-                ifname = self.config['proxy'].get('interface', '')
-                if not ifname:
-                    ifname = net.get_dev_name(self.listen_address)
+                ifname = interface
+                if ifname:
+                    SO_BINDTODEVICE = getattr(socket, 'SO_BINDTODEVICE', 25)
+                    self.dhcp_socket.setsockopt(socket.SOL_SOCKET, SO_BINDTODEVICE, (ifname+'\0').encode('utf-8'))
                 
-                SO_BINDTODEVICE = getattr(socket, 'SO_BINDTODEVICE', 25)
-                self.dhcp_socket.setsockopt(socket.SOL_SOCKET, SO_BINDTODEVICE, (ifname+'\0').encode('utf-8'))
                 self.dhcp_socket.bind(('',self.listen_port))
         
         except socket.error as msg :
@@ -102,14 +86,12 @@ class DHCPD(DhcpServerBase):
         self.client_port = int(client_port)
         self.server_port = int(server_port)
         self.config = parse_config(configfile)
-        DhcpServerBase.__init__(self,self.config['proxy']["listen_address"],self.client_port,self.server_port)
+        DhcpServerBase.__init__(self, self.config['proxy'].get("listen_address", "0.0.0.0"), self.client_port, self.server_port, self.config['proxy'].get("interface", ""))
         self.log('info',"Starting DHCP on ports client: %s, server: %s"%(self.client_port,self.server_port))
 
     def HandleDhcpDiscover(self, packet):
-        #print(packet.str())
         if packet.IsOption('vendor_class_identifier'):
             class_identifier = strlist(packet.GetOption('vendor_class_identifier'))
-            print(class_identifier)
             if class_identifier.str()[0:9] == "PXEClient":
                 responsepacket = DhcpPacket()
                 responsepacket.CreateDhcpOfferPacketFrom(packet)

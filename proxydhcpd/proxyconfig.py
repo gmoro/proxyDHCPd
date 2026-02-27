@@ -72,6 +72,32 @@ class parse_config(dict):
                 exit(2)
             self['proxy']['client_listen_port'] = "68"
             self['proxy']['server_listen_port'] = "67"
+            
+        # Single Source of Truth / Converge config IPs
+        from . import net
+        conf_ip = self['proxy'].get("listen_address")
+        conf_iface = self['proxy'].get("interface")
+        
+        if conf_iface and conf_ip:
+            if_ip = net.get_ip_address(conf_iface)
+            if if_ip != conf_ip:
+                print("CRITICAL: Split-Brain Config! listen_address (%s) does not match IP of interface %s (%s)." % (conf_ip, conf_iface, if_ip))
+                sys.exit(1)
+        elif conf_iface:
+            if_ip = net.get_ip_address(conf_iface)
+            if not if_ip:
+                print("CRITICAL: Cannot resolve IP for interface %s" % conf_iface)
+                sys.exit(1)
+            self['proxy']["listen_address"] = if_ip
+        elif conf_ip:
+            if_name = net.get_dev_name(conf_ip)
+            if not if_name and conf_ip != "0.0.0.0":
+                print("CRITICAL: Cannot resolve interface for IP %s" % conf_ip)
+                sys.exit(1)
+            self['proxy']["interface"] = if_name
+        else:
+            print("CRITICAL: You must provide either 'interface' or 'listen_address' in proxy.ini.")
+            sys.exit(1)
                 
     def ipAddressCheck(self,ip_str):
         pattern = r"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"

@@ -25,6 +25,31 @@ import time
 import traceback
 
 
+import logging
+import logging.handlers
+
+def setup_global_logger():
+    logger = logging.getLogger('proxydhcp')
+    logger.setLevel(logging.DEBUG)
+    if not logger.handlers:
+        formatter = logging.Formatter('%(asctime)s %(levelname)s ProxyDHCP: %(message)s')  
+        consoleLog = logging.StreamHandler()
+        consoleLog.setFormatter(formatter)
+        logger.addHandler(consoleLog)
+        
+        if sys.platform == 'win32':
+            fileLog = logging.FileHandler('proxy.log')
+            fileLog.setFormatter(formatter)
+            logger.addHandler(fileLog)
+        else:
+            if sys.platform == 'darwin':
+                syslogLog = logging.handlers.SysLogHandler("/var/run/syslog")
+            else:
+                syslogLog = logging.handlers.SysLogHandler("/dev/log")
+            syslogLog.setFormatter(formatter)
+            syslogLog.setLevel(logging.INFO)
+            logger.addHandler(syslogLog)
+            
 def usage():
     print( """
 Usage %s [-c file] [-h] [-d] [-p]
@@ -38,7 +63,7 @@ Options:
     """ % sys.argv[0] )
 
 def main():
-
+    setup_global_logger()
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hc:dp")
     except getopt.GetoptError as err:
