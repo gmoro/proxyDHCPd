@@ -99,6 +99,31 @@ chainload_url=boot.ipxe
 
 ---
 
+## Development & Testing
+
+We strictly enforce isolated environments for local development. **Do not run global `pip` installs.** 
+
+To set up your sandbox and run the test suite, run the following commands sequentially:
+
+```bash
+# 1. Create a dedicated virtual environment
+python3 -m venv venv
+
+# 2. Activate the virtual environment
+source venv/bin/activate
+
+# 3. Install the testing and development dependencies
+pip install -r requirements-dev.txt
+
+# 4. Run the Pytest suite with missing lines and HTML report generated
+pytest --cov=proxydhcpd.dhcpd --cov-report=term-missing --cov-report=html tests/
+
+# 5. Exit the sandbox when done
+deactivate
+```
+
+---
+
 ## Production Deployment (Systemd)
 
 To run ProxyDHCPd securely in production, configure it as a standard Systemd daemon. 
