@@ -35,7 +35,7 @@ class parse_config(dict):
             print('Unable to parse config file: %s' % configfile)
             sys.exit(2)
         for section in self.cp.sections():
-            if section in ['proxy', 'pxe']:
+            if section in ['proxy', 'pxe', 'ipxe']:
                 self[section]={}
                 for item in self.cp.items(section):
                     value = self.cp.get(section,item[0])
@@ -52,12 +52,14 @@ class parse_config(dict):
                         else:
                             print(valuecheckmsg)
                             sys.exit(2)
-                    elif item[0] in ['filename', 'filename_efi32', 'filename_efi64', 'interface']:
+                    elif item[0] in ['filename', 'filename_efi32', 'filename_efi64', 'interface', 'legacy_bootstrap', 'efi_bootstrap', 'chainload_url']:
                         if self.stringCheck(value):
                             self[section][item[0]] = value
                         else:
                             print(valuecheckmsg)
                             sys.exit(2)
+                    elif item[0] in ['enabled']:
+                        self[section][item[0]] = value
                     elif item[0] in ['vendor_specific_information']:
                         if self.stringCheck(value):
                             self[section][item[0]] = value

@@ -171,7 +171,47 @@ class ProxyDHCPD(DHCPD):
             
             class_identifier = strlist(packet.GetOption('vendor_class_identifier'))
             if class_identifier.str()[0:9] == "PXEClient":
-                boot_filename = self.get_boot_filename(packet)
+                
+                # 1. CONFIGURATION PARSING WITH FALLBACKS
+                ipxe_cfg = self.config.get('ipxe', {})
+                ipxe_enabled = str(ipxe_cfg.get('enabled', 'False')).lower() == 'true'
+                legacy_bootstrap = ipxe_cfg.get('legacy_bootstrap', 'undionly.kpxe')
+                efi_bootstrap = ipxe_cfg.get('efi_bootstrap', 'ipxe.efi')
+                chainload_url = ipxe_cfg.get('chainload_url', 'boot.ipxe')
+
+                # 2. THE ROUTING LOGIC (Option 77 and Option 93)
+                user_class = packet.GetOption('user_class') if packet.IsOption('user_class') else []
+                client_arch = packet.GetOption('client_system') if packet.IsOption('client_system') else []
+
+                # Convert Option 77 to a string safely
+                user_class_str = ""
+                if user_class:
+                    user_class_list = user_class.list() if hasattr(user_class, 'list') else user_class
+                    user_class_str = "".join([chr(c) for c in user_class_list if c != 0])
+
+                # Extract Option 93 architecture list
+                arch_list = []
+                if client_arch:
+                    arch_list = client_arch.list() if hasattr(client_arch, 'list') else client_arch
+
+                # Determine the target boot file
+                boot_file_name = None
+                if ipxe_enabled:
+                    if 'iPXE' in user_class_str:
+                        boot_file_name = chainload_url
+                        self.log('info', 'iPXE client detected. Directing to chainload URL: %s' % chainload_url)
+                    elif arch_list == [0, 0]:
+                        boot_file_name = legacy_bootstrap
+                        self.log('info', 'Legacy BIOS hardware detected. Directing to %s' % legacy_bootstrap)
+                    elif arch_list == [0, 7] or arch_list == [0, 9]:
+                        boot_file_name = efi_bootstrap
+                        self.log('info', 'UEFI hardware detected. Directing to %s' % efi_bootstrap)
+                    else:
+                        self.log('warning', 'Unsupported architecture detected: %s. Dropping payload.' % str(arch_list))
+                        boot_file_name = None
+                else:
+                    # Fallback to standard ProxyDHCP legacy handling
+                    boot_file_name = self.get_boot_filename(packet)
                 
                 responsepacket = DhcpPacket()
                 responsepacket.CreateDhcpAckPacketFrom(packet)
@@ -183,19 +223,26 @@ class ProxyDHCPD(DHCPD):
                     'giaddr': packet.GetOption("giaddr"),
                     'yiaddr':[0,0,0,0],
                     'siaddr': self.config['proxy']['tftpd'],
-                    'file': boot_filename.ljust(128, "\0").encode('ascii'),
                     'vendor_class_identifier': b"PXEClient",
-                    'server_identifier': list(map(int, self.config['proxy']["listen_address"].split("."))), # This is incorrect but apparently makes certain Intel cards happy
-                    'bootfile_name': (boot_filename + "\0").encode('ascii'),
+                    'server_identifier': list(map(int, self.config['proxy']["listen_address"].split("."))),
                     'tftp_server_name': self.config['proxy']['tftpd']
                 } )
+                
+                # 3. EDGE CASE HANDLING (EMPTY OR NONE VALUES)
+                if boot_file_name:
+                    file_payload = boot_file_name.ljust(128, "\0").encode('ascii')
+                    bootfile_name_payload = (boot_file_name + "\0").encode('ascii')
+                    responsepacket.SetOption('file', file_payload)
+                    responsepacket.SetOption('bootfile_name', bootfile_name_payload)
+                else:
+                    self.log('debug', 'boot_file_name is empty, skipping Option 67 (bootfile_name)')
                 
                 if self.config['proxy'].get('vendor_specific_information'):
                     responsepacket.SetOption('vendor_specific_information', self.config['proxy']['vendor_specific_information'].encode('ascii'))
                     
                 responsepacket.DeleteOption('ip_address_lease_time')
                 self.SendDhcpPacketTo(responsepacket, ".".join(list(map(str,packet.GetOption('ciaddr')))), self.client_port)
-                self.log('info','****Responded to PXE request (port 4011 ) from ' + ":".join(list(map(self.fmtHex,packet.GetHardwareAddress()))))
+                self.log('info','****Responded to PXE request (port 4011) from ' + ":".join(list(map(self.fmtHex,packet.GetHardwareAddress()))))
 
     def HandleDhcpDecline(self, packet):
         self.log('debug','Noticed a DHCP Decline packet from '  + ":".join(list(map(self.fmtHex,packet.GetHardwareAddress()))))
