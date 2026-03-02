@@ -3,7 +3,7 @@
 [![Python 3](https://img.shields.io/badge/Python-3-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-GPLv2-green.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
-**ProxyDHCPd** is a lightweight, strictly Python 3-native ProxyDHCP server built on `pydhcplib`. It is designed to solve one of the most persistent headaches in systems administration: configuring complex PXE boot environments across multiple architectures without touching your organization's primary DHCP infrastructure or writing brittle regex rules in DNSmasq/ISC-DHCP.
+**ProxyDHCPd** is a lightweight, strictly Python 3-native ProxyDHCP server built using an embedded fork of `pydhcplib`. It is designed to solve one of the most persistent headaches in systems administration: configuring complex PXE boot environments across multiple architectures without touching your organization's primary DHCP infrastructure or writing brittle regex rules in DNSmasq/ISC-DHCP.
 
 Its "killer feature" is **out-of-the-box native iPXE chainloading** via strict RFC 4578 architecture whitelisting, preventing the legendary PXE infinite boot loop natively through a single `config.ini` file.
 
@@ -53,7 +53,7 @@ sequenceDiagram
 
 ## Installation & Requirements
 
-ProxyDHCPd relies entirely on native Python 3 execution and the `pydhcplib` dependency graph.
+ProxyDHCPd relies entirely on native Python 3 execution and includes its own internal fork of `pydhcplib`, meaning there are **zero external network dependencies** outside of the Python 3 standard library.
 
 1. **Clone the repository:**
    ```bash
