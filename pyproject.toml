@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "proxydhcpd"
-version = "0.2.0"
+version = "0.3.0"
 description = "A proxy DHCP server in pure Python 3"
 authors = [
     { name = "Guilherme Moro", email = "guilherme.moro@gmail.com" },
 ]
-readme = "README"
+readme = "README.md"
 requires-python = ">=3.6"
 license = {text = "GPL-2.0"}
 dependencies = []
