@@ -16,7 +16,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 """
 
 from .dhcpd import DHCPD, ProxyDHCPD
-import getopt
+from . import __version__
+import argparse
 import os
 import socket
 import sys
@@ -24,9 +25,9 @@ import threading
 import time
 import traceback
 
-
 import logging
 import logging.handlers
+
 
 def setup_global_logger():
     logger = logging.getLogger('proxydhcp')
@@ -49,55 +50,48 @@ def setup_global_logger():
             syslogLog.setFormatter(formatter)
             syslogLog.setLevel(logging.INFO)
             logger.addHandler(syslogLog)
-            
-def usage():
-    print( """
-Usage %s [-c file] [-h] [-d] [-p]
 
-Options:
-    -c file  : Specify config file. Defaults is proxy.ini
-    -d       : Run as daemon (ignored on Win32)
-    -p       : Run only the ProxyDHCP Server
-    -h       : Help - this screen 
-    
-    """ % sys.argv[0] )
 
 def main():
+    parser = argparse.ArgumentParser(
+        prog='proxydhcpd',
+        description='ProxyDHCPd — A proxy DHCP server in pure Python 3 with native iPXE chainloading.',
+    )
+    parser.add_argument(
+        '-V', '--version',
+        action='version',
+        version='%(prog)s ' + __version__,
+    )
+    parser.add_argument(
+        '-c', '--config',
+        default='/etc/proxyDHCPd/proxy.ini',
+        metavar='FILE',
+        help='Path to the configuration file (default: /etc/proxyDHCPd/proxy.ini)',
+    )
+    parser.add_argument(
+        '-d', '--daemon',
+        action='store_true',
+        help='Run as a background daemon via double-fork (ignored on Win32)',
+    )
+    parser.add_argument(
+        '-p', '--proxy-only',
+        action='store_true',
+        help='Run only the ProxyDHCP server on port 4011 (skip port 67)',
+    )
+
+    args = parser.parse_args()
+
     setup_global_logger()
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "hc:dp")
-    except getopt.GetoptError as err:
-        print(str(err))
-        usage()
-        sys.exit(2)
-        
-    # Set defaults, check options supplied
-    configfile = '/etc/proxyDHCPd/proxy.ini'
-    daemon = False
-    proxy_only= False
-    
-    for o, a in opts:
-        if o in ("-h", "--help"):
-            usage()
-            sys.exit()
-        elif o in ("-c", "--config"):
-            configfile = a
-        elif o == "-d":      
-            if sys.platform == 'win32':
-                print("Ignoring request to run as daemon")
-            else:
-                daemon = True
-        elif o == "-p":
-            proxy_only=True
-        else:
-            assert False, "Unhandled option"
-            
-    if os.access(configfile, os.R_OK) == False:
+
+    configfile = args.config
+    daemon = args.daemon
+    proxy_only = args.proxy_only
+
+    if not os.access(configfile, os.R_OK):
         print("Unable to read config file: %s" % configfile)
-        usage()
         sys.exit(2)
 
-    server=None
+    server = None
 
     # Set up a DHCPD instance
     if not proxy_only:
@@ -121,32 +115,36 @@ def main():
         sys.exit(1)
     
     # Daemonise
-    if daemon == True:
-        # Do double-fork magic
-        try:
-            pid = os.fork()
-            if pid > 0:
-                sys.exit(0)
-        except OSError as e:
-            print("Fork #1 failed: %d (%s)" % ( e.errno, e.strerror))
-            sys.exit(1)
+    if daemon:
+        if sys.platform == 'win32':
+            print("Ignoring request to run as daemon on Win32")
+        else:
+            # Do double-fork magic
+            try:
+                pid = os.fork()
+                if pid > 0:
+                    sys.exit(0)
+            except OSError as e:
+                print("Fork #1 failed: %d (%s)" % (e.errno, e.strerror))
+                sys.exit(1)
+                
+            # Decouple from parent environment
+            os.chdir("/")
+            os.setsid()
+            os.umask(0)
             
-        # Decouple from parent environment
-        os.chdir("/")
-        os.setsid()
-        os.umask(0)
-        
-        # Do second fork
-        try:
-            pid = os.fork()
-            if pid > 0:
-                # Exit from second parent
-                server.logger.info("proxy daemon has PID %d" % pid)
-                server.logger.removeHandler(server.consoleLog)
-                sys.exit(0)
-        except OSError as e:
-            print( "Fork #2 failed: %d (%s)" % ( e.errno, e.strerror) )
-            sys.exit(1)
+            # Do second fork
+            try:
+                pid = os.fork()
+                if pid > 0:
+                    # Exit from second parent
+                    if server:
+                        server.logger.info("proxy daemon has PID %d" % pid)
+                        server.logger.removeHandler(server.consoleLog)
+                    sys.exit(0)
+            except OSError as e:
+                print("Fork #2 failed: %d (%s)" % (e.errno, e.strerror))
+                sys.exit(1)
 
     # Start loop
     if server and proxyserver:
@@ -159,13 +157,15 @@ def main():
     t2.daemon = True
     t2.start()
 
-    while proxyserver.loop and server.loop:
+    while (proxyserver and proxyserver.loop) or (server and server.loop):
         try:
             time.sleep(1)
-        except (KeyboardInterrupt,SystemExit):
-            print("Exiting....")
-            server.loop = False
-            proxyserver.loop = False
+        except KeyboardInterrupt:
+            print("\nExiting....")
+            if proxyserver:
+                proxyserver.loop = False
+            if server:
+                server.loop = False
             
 if __name__ == "__main__":
     main()

@@ -17,10 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 import os
 import sys
 import re
-try:
-    import configparser as ConfigParser
-except:
-    import ConfigParser
+import configparser as ConfigParser
 
 class parse_config(dict):
     cp = ConfigParser.ConfigParser()

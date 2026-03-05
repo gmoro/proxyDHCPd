@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "proxydhcpd"
-version = "0.3.0"
+dynamic = ["version"]
 description = "A proxy DHCP server in pure Python 3"
 authors = [
     { name = "Guilherme Moro", email = "guilherme.moro@gmail.com" },
@@ -13,6 +13,29 @@ readme = "README.md"
 requires-python = ">=3.6"
 license = {text = "GPL-2.0"}
 dependencies = []
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: No Input/Output (Daemon)",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Boot",
+    "Topic :: System :: Networking",
+]
+
+[project.urls]
+Homepage = "https://github.com/gmoro/proxyDHCPd"
+Repository = "https://github.com/gmoro/proxyDHCPd"
+"Bug Tracker" = "https://github.com/gmoro/proxyDHCPd/issues"
+
+[tool.setuptools.dynamic]
+version = {attr = "proxydhcpd.__version__"}
 
 [tool.setuptools]
 packages = ["proxydhcpd", "proxydhcpd.dhcplib"]

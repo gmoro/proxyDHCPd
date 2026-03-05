@@ -21,3 +21,9 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Testing / Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+diff.txt

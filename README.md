@@ -57,8 +57,8 @@ ProxyDHCPd relies entirely on native Python 3 execution and includes its own int
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-repo/proxydhcpd.git
-   cd proxydhcpd
+   git clone https://github.com/gmoro/proxyDHCPd.git
+   cd proxyDHCPd
    ```
 
 2. **System Requirements:**
@@ -122,33 +122,54 @@ pytest --cov=proxydhcpd.dhcpd --cov-report=term-missing --cov-report=html tests/
 deactivate
 ```
 
+### CLI Usage
+
+```
+usage: proxydhcpd [-h] [-V] [-c FILE] [-d] [-p]
+
+ProxyDHCPd — A proxy DHCP server in pure Python 3 with native iPXE chainloading.
+
+options:
+  -h, --help            show this help message and exit
+  -V, --version         show program's version number and exit
+  -c FILE, --config FILE
+                        Path to the configuration file (default: /etc/proxyDHCPd/proxy.ini)
+  -d, --daemon          Run as a background daemon via double-fork (ignored on Win32)
+  -p, --proxy-only      Run only the ProxyDHCP server on port 4011 (skip port 67)
+```
+
 ---
 
 ## Production Deployment (Systemd)
 
-To run ProxyDHCPd securely in production, configure it as a standard Systemd daemon. 
-
-Create the file `/etc/systemd/system/proxydhcpd.service`:
+To run ProxyDHCPd securely in production, install the RPM package or `pip install .` and use the included hardened systemd unit:
 
 ```ini
 [Unit]
-Description=Python 3 ProxyDHCP Daemon (iPXE Router)
-After=network-online.target
-Wants=network-online.target
+Description=Python 3 Proxy DHCP Server
+After=network.target
 
 [Service]
 Type=simple
-# Ensure the working directory matches your clone or PIP installation
-WorkingDirectory=/opt/proxydhcpd/
-# Run the daemonized client directly, passing the config file
-ExecStart=/usr/bin/python3 -m proxydhcpd.cli -c /etc/proxyDHCPd/proxy.ini
-# Fast failures logic
+# Hardened Security Defaults
+DynamicUser=yes
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+NoNewPrivileges=yes
+
+# We run as a regular service instead of using the built-in fork daemon (-d)
+ExecStart=/usr/bin/proxydhcpd -c /etc/proxyDHCPd/proxy.ini
 Restart=on-failure
-RestartSec=5
-# Hardened permissions
-User=root
-Group=root
-LimitNOFILE=4096
 
 [Install]
 WantedBy=multi-user.target

@@ -4,7 +4,7 @@ Release:        1%{?dist}
 Summary:        A proxy DHCP server in pure Python 3
 
 License:        GPL-2.0-only
-URL:            https://github.com/
+URL:            https://github.com/gmoro/proxyDHCPd
 Source0:        %{name}-%{version}.tar.gz
 
 BuildArch:      noarch
@@ -33,6 +33,8 @@ install -D -p -m 644 %{name}.service %{buildroot}%{_unitdir}/%{name}.service
 install -D -p -m 644 proxy.ini %{buildroot}%{_sysconfdir}/proxyDHCPd/proxy.ini
 
 %files
+%license gpl-2.0.txt
+%doc README.md CHANGELOG.md
 %{_bindir}/proxydhcpd
 %{python3_sitelib}/proxydhcpd/
 %{python3_sitelib}/proxydhcpd-*.dist-info/
@@ -50,6 +52,14 @@ install -D -p -m 644 proxy.ini %{buildroot}%{_sysconfdir}/proxyDHCPd/proxy.ini
 %systemd_postun_with_restart %{name}.service
 
 %changelog
+* Thu Mar 05 2026 Guilherme Moro <guilherme.moro@gmail.com> - 0.3.0-1
+- Modernised CLI: replaced getopt with argparse (--version, --help, --config, --daemon, --proxy-only)
+- Added __version__ and dynamic versioning via pyproject.toml
+- Added PyPI classifiers and project URLs
+- Cleaned Python 2 compatibility shims
+- Added MANIFEST.in, CHANGELOG.md
+- Hardened .gitignore for test artifacts
+
 * Thu Feb 26 2026 Guilherme Moro <guilherme.moro@gmail.com> - 0.2.0-1
 - Modernized proxyDHCPd port to Python 3
 - Added robust pyproject.toml and systemd configurations
