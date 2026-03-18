@@ -99,7 +99,7 @@ def main():
             server = DHCPD(configfile)
         except socket.error as msg:
             print("Error initiating on normal port, will try only 4011")
-        except:
+        except Exception:
             traceback.print_exc()
             print("Failed to start.")
             sys.exit(1)
@@ -109,7 +109,7 @@ def main():
     except socket.error as msg:
         print("Error initiating Proxy, already running?")
         sys.exit(1)
-    except:
+    except Exception:
         traceback.print_exc()
         print("Failed to start proxy.")
         sys.exit(1)

@@ -69,7 +69,7 @@ class DhcpServerBase(DhcpNetwork) :
         while self.loop:
             try:
                 self.GetNextDhcpPacket()
-            except:
+            except Exception:
                 traceback.print_exc()
         self.log('info','Service shutdown')
     
