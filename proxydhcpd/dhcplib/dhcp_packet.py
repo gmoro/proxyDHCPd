@@ -143,7 +143,7 @@ class DhcpPacket(DhcpBasicPacket):
         elif p == 'chaddr' :
             try:
                 value = hwmac(value).list()+[0]*10
-            except ValueError,TypeError :
+            except (ValueError, TypeError):
                 value = [0]*16
             return value
             

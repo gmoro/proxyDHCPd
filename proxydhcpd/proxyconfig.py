@@ -27,8 +27,7 @@ class parse_config(dict):
             sys.exit(2)
         try:
             self.cp.read(configfile)
-        except:
-            ConfigParser
+        except ConfigParser.Error:
             print('Unable to parse config file: %s' % configfile)
             sys.exit(2)
         for section in self.cp.sections():
@@ -114,8 +113,7 @@ class parse_config(dict):
     def intCheck(self,input):
         try:
             int(input)
-        except:
-            ValueError
+        except ValueError:
             return False
         return True
     
