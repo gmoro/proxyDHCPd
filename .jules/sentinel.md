@@ -1,0 +1,4 @@
+## 2024-05-27 - [DHCP Option Parsing DoS]
+**Vulnerability:** A malformed DHCP packet with an option code at the very end of the packet, missing its length byte, caused an `IndexError` when the parser tried to access `self.packet_data[iterator+1]`. This could crash the entire proxyDHCP daemon.
+**Learning:** Network protocols often rely on explicit length fields. The parser trusted that every option code (except padding/end) would be followed by at least a length byte, leading to an out-of-bounds array access.
+**Prevention:** Always perform bounds checking (`if index < len(data)`) before accessing explicit indices in network packet buffers, especially when the presence of subsequent bytes is dictated by earlier bytes rather than the overall packet length. Slicing `[start:end]` is safe in Python, but direct index access `[index]` is not.
