@@ -177,11 +177,15 @@ class DhcpBasicPacket:
                 return
                 
             elif self.packet_data[iterator] in DhcpOptionsTypes and self.packet_data[iterator]!= 255:
+                if iterator + 1 >= end_iterator:
+                    break
                 opt_len = self.packet_data[iterator+1]
                 opt_first = iterator+1
                 self.options_data[DhcpOptionsList[self.packet_data[iterator]]] = self.packet_data[opt_first+1:opt_len+opt_first+1]
                 iterator += self.packet_data[opt_first] + 2
             else :
+                if iterator + 1 >= end_iterator:
+                    break
                 opt_first = iterator+1
                 iterator += self.packet_data[opt_first] + 2
 
