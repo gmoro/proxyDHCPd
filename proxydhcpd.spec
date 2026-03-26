@@ -3,7 +3,7 @@
 %endif
 
 Name:           proxydhcpd
-Version:        0.3.1
+Version:        0.3.2
 Release:        1%{?dist}
 Summary:        A proxy DHCP server in pure Python 3
 License:        GPL-2.0-only
@@ -34,7 +34,7 @@ for clients booting via network in parallel with a standard DHCP server.
 %autosetup -n %{name}-%{version}
 
 %if !0%{?suse_version}
-%generate_buildrequires
+%{expand:%%generate_buildrequires}
 %pyproject_buildrequires
 %endif
 
@@ -73,7 +73,7 @@ mv %{buildroot}%{_bindir}/%{name}-* %{buildroot}%{_bindir}/%{name} || :
 %{python_sitelib}/%{name}/
 %{python_sitelib}/%{name}-*.dist-info/
 %endif
-%license gpl-2.0.txt
+%license LICENSE
 %doc README.md CHANGELOG.md
 %{_bindir}/%{name}
 %{_unitdir}/%{name}.service
@@ -81,6 +81,11 @@ mv %{buildroot}%{_bindir}/%{name}-* %{buildroot}%{_bindir}/%{name} || :
 %config(noreplace) %{_sysconfdir}/%{name}/proxy.ini
 
 %changelog
+* Thu Mar 26 2026 Guilherme Moro <guilherme.moro@gmail.com> - 0.3.2-1
+- Renamed gpl-2.0.txt to LICENSE for better build system compatibility
+- Reverted pyproject.toml license field to legacy file format
+- Bumped version to 0.3.2
+
 * Thu Mar 26 2026 Guilherme Moro <guilherme.moro@gmail.com> - 0.3.1-1
 - Unified cross-distro spec: robust support for Fedora pyproject-rpm-macros and openSUSE python-rpm-macros
 - Implemented Fedora %pyproject_save_files and openSUSE %python_expand %fdupes

@@ -4,6 +4,11 @@ All notable changes to ProxyDHCPd will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.2] - 2026-03-26
+
+### Fixed
+- **License file alignment**: Renamed `gpl-2.0.txt` to `LICENSE` and updated `pyproject.toml` to use the legacy `{ file = "LICENSE" }` format to support older build systems.
+
 ## [0.3.1] - 2026-03-26
 
 ### Added
@@ -38,6 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Test suite with 5 iPXE routing scenarios using `pytest` + `unittest.mock`
 - RFC 4578 architecture whitelisting (Option 93) with native iPXE chainloading (Option 77)
 
+[0.3.2]: https://github.com/gmoro/proxyDHCPd/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/gmoro/proxyDHCPd/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/gmoro/proxyDHCPd/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/gmoro/proxyDHCPd/releases/tag/v0.2.0

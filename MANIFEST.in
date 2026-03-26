@@ -1,4 +1,4 @@
-include gpl-2.0.txt
+include LICENSE
 include proxy.ini
 include proxydhcpd.service
 include README.md
