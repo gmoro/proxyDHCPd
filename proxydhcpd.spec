@@ -20,6 +20,11 @@ BuildRequires:  fdupes
 BuildRequires:  %{python_module pip}
 BuildRequires:  %{python_module wheel}
 BuildRequires:  %{python_module setuptools}
+%else
+# --- Fedora static PEP-517 backend requirements ---
+BuildRequires:  python3-pip
+BuildRequires:  python3-setuptools >= 61.0
+BuildRequires:  python3-wheel
 %endif
 
 Requires:       python3
