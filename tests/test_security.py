@@ -29,3 +29,14 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+def test_decode_packet_missing_hlen():
+    packet = DhcpPacket()
+    # Create a payload with MagicCookie and missing hlen option
+    payload = [0] * 236 + MagicCookie
+    packet.DecodePacket(bytes(payload))
+    # This should not raise an IndexError when accessing missing hlen
+    try:
+        hw_addr = packet.GetHardwareAddress()
+    except IndexError:
+        pytest.fail("IndexError raised when accessing missing hlen")
