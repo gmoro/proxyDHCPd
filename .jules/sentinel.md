@@ -2,3 +2,8 @@
 **Vulnerability:** In `pydhcplib`'s packet parsing logic, `DecodePacket` did not check if the iterator was at the end of the packet data before attempting to read the length byte of a DHCP option (`iterator+1`). A specially crafted packet terminating exactly at an option byte code would throw an `IndexError: list index out of range`, potentially crashing the ProxyDHCP daemon handling the packet.
 **Learning:** This existed because the original `pydhcplib` codebase assumed a well-formed network payload and blindly relied on `self.packet_data[iterator+1]`.
 **Prevention:** Ensure all binary network data parsing functions bounds-check their read iterators against the maximum buffer length before consuming dynamically-sized tokens.
+
+## 2024-05-26 - [Unsafe List Access in Packet Parsing]
+**Vulnerability:** [DoS risk from unhandled IndexError when parsing empty or malformed DHCP packets containing empty option values like `hlen`]
+**Learning:** [Raw byte parsing libraries often return empty lists for truncated packet options. Directly accessing index `[0]` on these results without length checks causes exceptions that crash daemon threads or leak stack traces]
+**Prevention:** [Always validate the length of lists returned by packet parsing functions before accessing elements by index, or use safe retrieval methods with default values]
