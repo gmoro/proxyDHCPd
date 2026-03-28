@@ -21,7 +21,7 @@ LockPersonality=yes
 NoNewPrivileges=yes
 
 # We run as a regular service instead of using the built-in fork daemon (-d)
-ExecStart=/usr/bin/proxydhcpd -c /etc/proxyDHCPd/proxy.ini
+ExecStart=/usr/bin/proxydhcpd -c /etc/proxydhcpd/proxy.ini
 Restart=on-failure
 
 [Install]

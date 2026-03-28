@@ -64,9 +64,9 @@ def main():
     )
     parser.add_argument(
         '-c', '--config',
-        default='/etc/proxyDHCPd/proxy.ini',
+        default='/etc/proxydhcpd/proxy.ini',
         metavar='FILE',
-        help='Path to the configuration file (default: /etc/proxyDHCPd/proxy.ini)',
+        help='Path to the configuration file (default: /etc/proxydhcpd/proxy.ini)',
     )
     parser.add_argument(
         '-d', '--daemon',

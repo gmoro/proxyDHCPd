@@ -133,7 +133,7 @@ options:
   -h, --help            show this help message and exit
   -V, --version         show program's version number and exit
   -c FILE, --config FILE
-                        Path to the configuration file (default: /etc/proxyDHCPd/proxy.ini)
+                        Path to the configuration file (default: /etc/proxydhcpd/proxy.ini)
   -d, --daemon          Run as a background daemon via double-fork (ignored on Win32)
   -p, --proxy-only      Run only the ProxyDHCP server on port 4011 (skip port 67)
 ```
@@ -168,7 +168,7 @@ LockPersonality=yes
 NoNewPrivileges=yes
 
 # We run as a regular service instead of using the built-in fork daemon (-d)
-ExecStart=/usr/bin/proxydhcpd -c /etc/proxyDHCPd/proxy.ini
+ExecStart=/usr/bin/proxydhcpd -c /etc/proxydhcpd/proxy.ini
 Restart=on-failure
 
 [Install]
