@@ -1,4 +1,4 @@
-## 2024-05-24 - DoS via Unhandled Out-Of-Bounds Exception in Packet Parsing
-**Vulnerability:** In `pydhcplib`'s packet parsing logic, `DecodePacket` did not check if the iterator was at the end of the packet data before attempting to read the length byte of a DHCP option (`iterator+1`). A specially crafted packet terminating exactly at an option byte code would throw an `IndexError: list index out of range`, potentially crashing the ProxyDHCP daemon handling the packet.
-**Learning:** This existed because the original `pydhcplib` codebase assumed a well-formed network payload and blindly relied on `self.packet_data[iterator+1]`.
-**Prevention:** Ensure all binary network data parsing functions bounds-check their read iterators against the maximum buffer length before consuming dynamically-sized tokens.
+## 2024-05-24 - Insecure Umask During Daemonization
+**Vulnerability:** The daemonization routine in `proxydhcpd/cli.py` called `os.umask(0)`, causing any files created by the background daemon (such as log files) to be world-writable by default.
+**Learning:** Legacy daemonization boilerplate often clears the umask to give the process full control, but this inadvertently creates a security risk if the process creates files without explicitly restricting permissions.
+**Prevention:** Always use a secure umask (e.g., `0o022` or `0o027`) when double-forking to ensure default file creations are restricted to the owner/group.
