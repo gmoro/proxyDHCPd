@@ -131,7 +131,7 @@ def main():
             # Decouple from parent environment
             os.chdir("/")
             os.setsid()
-            os.umask(0)
+            os.umask(0o022) # SECURE: Prevent world-writable permissions for daemon-created files
             
             # Do second fork
             try:
