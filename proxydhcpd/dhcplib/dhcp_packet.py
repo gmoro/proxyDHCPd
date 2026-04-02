@@ -31,7 +31,10 @@ class DhcpPacket(DhcpBasicPacket):
         printable_data = "# Header fields\n"
 
         op = self.packet_data[DhcpFields['op'][0]:DhcpFields['op'][0]+DhcpFields['op'][1]]
-        printable_data += "op : " + DhcpFieldsName['op'][str(op[0])] + "\n"
+        if op:
+            printable_data += "op : " + DhcpFieldsName['op'].get(str(op[0]), "Unknown") + "\n"
+        else:
+            printable_data += "op : Unknown\n"
 
         
         for opt in  ['htype','hlen','hops','xid','secs','flags',
@@ -40,8 +43,10 @@ class DhcpPacket(DhcpBasicPacket):
             end = DhcpFields[opt][0]+DhcpFields[opt][1]
             data = self.packet_data[begin:end]
             result = ''
-            if DhcpFieldsTypes[opt] == "int" : result = str(data[0])
-            elif DhcpFieldsTypes[opt] == "int2" : result = str(data[0]*256+data[1])
+            if not data:
+                result = 'Unknown'
+            elif DhcpFieldsTypes[opt] == "int" : result = str(data[0])
+            elif DhcpFieldsTypes[opt] == "int2" and len(data) >= 2 : result = str(data[0]*256+data[1])
             elif DhcpFieldsTypes[opt] == "int4" : result = str(ipv4(data).int())
             elif DhcpFieldsTypes[opt] == "str" :
                 for each in data :
@@ -52,8 +57,8 @@ class DhcpPacket(DhcpBasicPacket):
             elif DhcpFieldsTypes[opt] == "hwmac" :
                 result = []
                 hexsym = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
-                for iterator in range(6) :
-                    result += [str(hexsym[data[iterator]/16]+hexsym[data[iterator]%16])]
+                for iterator in range(min(6, len(data))) :
+                    result += [str(hexsym[data[iterator]//16]+hexsym[data[iterator]%16])]
 
                 result = ':'.join(result)
 
@@ -65,10 +70,12 @@ class DhcpPacket(DhcpBasicPacket):
         for opt in self.options_data.keys():
             data = self.options_data[opt]
             result = ""
+            if not data:
+                continue
             optnum  = DhcpOptions[opt]
-            if opt=='dhcp_message_type' : result = DhcpFieldsName['dhcp_message_type'][str(data[0])]
+            if opt=='dhcp_message_type' : result = DhcpFieldsName['dhcp_message_type'].get(str(data[0]), "Unknown")
             elif DhcpOptionsTypes[optnum] == "char" : result = str(data[0])
-            elif DhcpOptionsTypes[optnum] == "16-bits" : result = str(data[0]*256+data[0])
+            elif DhcpOptionsTypes[optnum] == "16-bits" and len(data) >= 2 : result = str(data[0]*256+data[1])
             elif DhcpOptionsTypes[optnum] == "32-bits" : result = str(ipv4(data).int())
             elif DhcpOptionsTypes[optnum] == "string" :
                 for each in data :
@@ -361,8 +368,9 @@ class DhcpPacket(DhcpBasicPacket):
         return self.GetOption("giaddr")
 
     def GetHardwareAddress(self) :
-        length = self.GetOption("hlen")[0]
+        hlen = self.GetOption("hlen")
+        length = hlen[0] if len(hlen) > 0 else 0
         full_hw = self.GetOption("chaddr")
-        if length!=[] and length<len(full_hw) : return full_hw[0:length]
+        if length > 0 and length < len(full_hw) : return full_hw[0:length]
         return full_hw
 
