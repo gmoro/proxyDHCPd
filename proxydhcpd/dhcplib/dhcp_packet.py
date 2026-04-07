@@ -31,7 +31,10 @@ class DhcpPacket(DhcpBasicPacket):
         printable_data = "# Header fields\n"
 
         op = self.packet_data[DhcpFields['op'][0]:DhcpFields['op'][0]+DhcpFields['op'][1]]
-        printable_data += "op : " + DhcpFieldsName['op'][str(op[0])] + "\n"
+        if op:
+            printable_data += "op : " + DhcpFieldsName['op'].get(str(op[0]), str(op[0])) + "\n"
+        else:
+            printable_data += "op : \n"
 
         
         for opt in  ['htype','hlen','hops','xid','secs','flags',
@@ -39,9 +42,16 @@ class DhcpPacket(DhcpBasicPacket):
             begin = DhcpFields[opt][0]
             end = DhcpFields[opt][0]+DhcpFields[opt][1]
             data = self.packet_data[begin:end]
+            if not data:
+                printable_data += opt+" : \n"
+                continue
             result = ''
             if DhcpFieldsTypes[opt] == "int" : result = str(data[0])
-            elif DhcpFieldsTypes[opt] == "int2" : result = str(data[0]*256+data[1])
+            elif DhcpFieldsTypes[opt] == "int2" :
+                if len(data) >= 2:
+                    result = str(data[0]*256+data[1])
+                else:
+                    result = str(data[0])
             elif DhcpFieldsTypes[opt] == "int4" : result = str(ipv4(data).int())
             elif DhcpFieldsTypes[opt] == "str" :
                 for each in data :
@@ -53,7 +63,7 @@ class DhcpPacket(DhcpBasicPacket):
                 result = []
                 hexsym = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
                 for iterator in range(6) :
-                    result += [str(hexsym[data[iterator]/16]+hexsym[data[iterator]%16])]
+                    result += [str(hexsym[data[iterator]//16]+hexsym[data[iterator]%16])]
 
                 result = ':'.join(result)
 
@@ -64,6 +74,8 @@ class DhcpPacket(DhcpBasicPacket):
 
         for opt in self.options_data.keys():
             data = self.options_data[opt]
+            if not data:
+                continue
             result = ""
             optnum  = DhcpOptions[opt]
             if opt=='dhcp_message_type' : result = DhcpFieldsName['dhcp_message_type'][str(data[0])]
@@ -361,7 +373,8 @@ class DhcpPacket(DhcpBasicPacket):
         return self.GetOption("giaddr")
 
     def GetHardwareAddress(self) :
-        length = self.GetOption("hlen")[0]
+        hlen_opt = self.GetOption("hlen")
+        length = hlen_opt[0] if hlen_opt else 0
         full_hw = self.GetOption("chaddr")
         if length!=[] and length<len(full_hw) : return full_hw[0:length]
         return full_hw
