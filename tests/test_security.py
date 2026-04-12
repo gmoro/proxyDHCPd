@@ -29,3 +29,10 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+def test_get_hardware_address_empty_hlen():
+    packet = DhcpPacket()
+    packet.packet_data = [] # Empty packet data
+    # This shouldn't raise IndexError
+    hw_addr = packet.GetHardwareAddress()
+    assert hw_addr == []
