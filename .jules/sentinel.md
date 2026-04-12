@@ -2,3 +2,7 @@
 **Vulnerability:** In `pydhcplib`'s packet parsing logic, `DecodePacket` did not check if the iterator was at the end of the packet data before attempting to read the length byte of a DHCP option (`iterator+1`). A specially crafted packet terminating exactly at an option byte code would throw an `IndexError: list index out of range`, potentially crashing the ProxyDHCP daemon handling the packet.
 **Learning:** This existed because the original `pydhcplib` codebase assumed a well-formed network payload and blindly relied on `self.packet_data[iterator+1]`.
 **Prevention:** Ensure all binary network data parsing functions bounds-check their read iterators against the maximum buffer length before consuming dynamically-sized tokens.
+## 2024-05-24 - DoS via Unhandled Out-Of-Bounds Exception in GetOption
+**Vulnerability:** In `pydhcplib`'s packet parsing logic, if a malformed or heavily truncated DHCP packet is received, `self.GetOption("hlen")` could return an empty list (`[]`). Attempting to access index `[0]` of this empty list in `GetHardwareAddress()` raised an unhandled `IndexError`, crashing the DHCP server process.
+**Learning:** This existed because the codebase assumed that certain standard fields (like `hlen`) would always be present and non-empty in incoming network packets.
+**Prevention:** Always verify that arrays or lists returned by network parsing functions (like `GetOption`) are non-empty before attempting to access specific indices, especially index 0. Use inline truthy checks or `len() > 0` before indexing.
