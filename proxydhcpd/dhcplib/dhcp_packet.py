@@ -361,8 +361,9 @@ class DhcpPacket(DhcpBasicPacket):
         return self.GetOption("giaddr")
 
     def GetHardwareAddress(self) :
-        length = self.GetOption("hlen")[0]
+        hlen_opt = self.GetOption("hlen")
+        length = hlen_opt[0] if hlen_opt else 0
         full_hw = self.GetOption("chaddr")
-        if length!=[] and length<len(full_hw) : return full_hw[0:length]
+        if length and length<len(full_hw) : return full_hw[0:length]
         return full_hw
 
