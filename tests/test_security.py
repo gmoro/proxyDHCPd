@@ -29,3 +29,11 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+def test_get_hardware_address_malformed_dos():
+    packet = DhcpPacket()
+    # Malformed packet less than 236 bytes or without hlen field should not cause IndexError DoS
+    packet.DecodePacket(bytes([1, 2, 3]))
+    hw_addr = packet.GetHardwareAddress()
+    # If the packet is malformed and we can't extract it, it should just fail securely returning what it can
+    assert isinstance(hw_addr, list)
