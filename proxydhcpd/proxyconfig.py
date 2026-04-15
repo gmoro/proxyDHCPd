@@ -99,7 +99,7 @@ class parse_config(dict):
                 
     def ipAddressCheck(self,ip_str):
         pattern = r"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"
-        if re.match(pattern, ip_str):
+        if re.fullmatch(pattern, ip_str):
             return True
         else:
             return False
@@ -113,7 +113,7 @@ class parse_config(dict):
     def intCheck(self,input):
         try:
             int(input)
-        except ValueError:
+        except (ValueError, TypeError):
             return False
         return True
     
