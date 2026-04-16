@@ -29,3 +29,18 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+def test_ipAddressCheck_cwe185():
+    from proxydhcpd.proxyconfig import parse_config
+
+    # Create an uninitialized instance to avoid sys.exit side-effects
+    config = parse_config.__new__(parse_config)
+
+    # Valid IP should pass
+    assert config.ipAddressCheck("192.168.1.1") is True
+
+    # Invalid IPs with trailing/leading garbage should fail (CWE-185)
+    assert config.ipAddressCheck("192.168.1.1 ") is False
+    assert config.ipAddressCheck(" 192.168.1.1") is False
+    assert config.ipAddressCheck("192.168.1.1;cat /etc/passwd") is False
+    assert config.ipAddressCheck("192.168.1.1garbage") is False
