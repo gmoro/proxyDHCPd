@@ -98,8 +98,10 @@ class parse_config(dict):
             sys.exit(1)
                 
     def ipAddressCheck(self,ip_str):
+        # 🛡️ Sentinel: Use fullmatch instead of match to strictly validate IP addresses
+        # and prevent bypasses with trailing garbage (e.g. "192.168.1.1\n rm -rf /").
         pattern = r"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"
-        if re.match(pattern, ip_str):
+        if re.fullmatch(pattern, ip_str):
             return True
         else:
             return False
