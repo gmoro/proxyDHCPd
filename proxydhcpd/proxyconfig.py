@@ -99,7 +99,9 @@ class parse_config(dict):
                 
     def ipAddressCheck(self,ip_str):
         pattern = r"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"
-        if re.match(pattern, ip_str):
+        # 🛡️ Sentinel: Use re.fullmatch instead of re.match to prevent partial matches
+        # and trailing garbage characters (CWE-185) which could lead to injection attacks.
+        if re.fullmatch(pattern, str(ip_str)):
             return True
         else:
             return False
