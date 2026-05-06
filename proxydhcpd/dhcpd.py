@@ -22,7 +22,7 @@ import logging
 import logging.handlers
 import sys
 from . import net
-import traceback
+
 
 class DhcpServerBase(DhcpNetwork) :
     def __init__(self, listen_address="0.0.0.0", client_listen_port=68,server_listen_port=67, interface="") :
@@ -70,7 +70,7 @@ class DhcpServerBase(DhcpNetwork) :
             try:
                 self.GetNextDhcpPacket()
             except Exception:
-                traceback.print_exc()
+                logging.getLogger('proxydhcp').exception('Unexpected error processing DHCP packet')
         self.log('info','Service shutdown')
     
     def log(self,level,message):
