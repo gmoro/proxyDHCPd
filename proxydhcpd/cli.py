@@ -23,7 +23,6 @@ import socket
 import sys
 import threading
 import time
-import traceback
 
 import logging
 import logging.handlers
@@ -100,7 +99,7 @@ def main():
         except socket.error as msg:
             print("Error initiating on normal port, will try only 4011")
         except Exception:
-            traceback.print_exc()
+            logging.getLogger('proxydhcp').error("Failed to start.")
             print("Failed to start.")
             sys.exit(1)
         
@@ -110,7 +109,7 @@ def main():
         print("Error initiating Proxy, already running?")
         sys.exit(1)
     except Exception:
-        traceback.print_exc()
+        logging.getLogger('proxydhcp').error("Failed to start proxy.")
         print("Failed to start proxy.")
         sys.exit(1)
     
@@ -131,7 +130,7 @@ def main():
             # Decouple from parent environment
             os.chdir("/")
             os.setsid()
-            os.umask(0)
+            os.umask(0o022)
             
             # Do second fork
             try:
