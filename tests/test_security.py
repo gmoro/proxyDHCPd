@@ -29,3 +29,19 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+def test_dhcppacket_str_unhandled_exceptions():
+    packet = DhcpPacket()
+    # Test short packet formatting doesn't raise Unhandled Exception
+    packet.packet_data = [0] * 10
+    # Should not raise exception
+    res = packet.str()
+    assert "# Header fields" in res
+
+def test_dhcppacket_gethardwareaddress_out_of_bounds():
+    packet = DhcpPacket()
+    packet.DecodePacket(b"\x00" * 30 + b"\xff")
+    # This should not raise an IndexError when hlen is empty
+    mac = packet.GetHardwareAddress()
+    # When packet is truncated, it returns the available bytes instead of throwing an error
+    assert type(mac) == list
