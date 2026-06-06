@@ -29,3 +29,16 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+def test_ip_address_check_trailing_garbage():
+    from proxydhcpd.proxyconfig import parse_config
+
+    # Create an uninitialized instance to test the method directly
+    parser = parse_config.__new__(parse_config)
+
+    # Valid IP address
+    assert parser.ipAddressCheck("192.168.1.1") is True
+
+    # Invalid IP address with trailing garbage (CWE-185 partial match check)
+    assert parser.ipAddressCheck("192.168.1.1; rm -rf /") is False
+    assert parser.ipAddressCheck("192.168.1.1 trailing") is False
