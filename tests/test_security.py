@@ -29,3 +29,18 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+from proxydhcpd.proxyconfig import parse_config
+
+def test_ip_address_check_valid():
+    # Use uninitialized instance to avoid constructor side-effects
+    config = parse_config.__new__(parse_config)
+    assert config.ipAddressCheck("192.168.1.1") is True
+
+def test_ip_address_check_invalid_trailing():
+    config = parse_config.__new__(parse_config)
+    assert config.ipAddressCheck("192.168.1.1 trailing") is False
+
+def test_ip_address_check_invalid_prefix():
+    config = parse_config.__new__(parse_config)
+    assert config.ipAddressCheck("prefix 192.168.1.1") is False
