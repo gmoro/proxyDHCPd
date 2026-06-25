@@ -2,3 +2,7 @@
 **Vulnerability:** In `pydhcplib`'s packet parsing logic, `DecodePacket` did not check if the iterator was at the end of the packet data before attempting to read the length byte of a DHCP option (`iterator+1`). A specially crafted packet terminating exactly at an option byte code would throw an `IndexError: list index out of range`, potentially crashing the ProxyDHCP daemon handling the packet.
 **Learning:** This existed because the original `pydhcplib` codebase assumed a well-formed network payload and blindly relied on `self.packet_data[iterator+1]`.
 **Prevention:** Ensure all binary network data parsing functions bounds-check their read iterators against the maximum buffer length before consuming dynamically-sized tokens.
+## 2024-05-24 - Incorrect Permission Assignment via os.umask(0)
+**Vulnerability:** The daemonization routine in `proxydhcpd/cli.py` used `os.umask(0)`, effectively clearing the file creation mask for the daemon process. This meant any files created by the process (like log files) using default permissions would be world-writable (-rw-rw-rw-).
+**Learning:** This likely existed because `os.umask(0)` is a commonly miscopied piece of boilerplate from older daemonization tutorials that fail to consider the security implications of granting global write access to system-level daemon artifacts.
+**Prevention:** Always use a secure file creation mask like `os.umask(0o022)` when daemonizing to ensure newly created files default to a safe permission set (owner writable, group/others read-only).
