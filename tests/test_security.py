@@ -29,3 +29,14 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+def test_ipAddressCheck_strict_validation():
+    from proxydhcpd.proxyconfig import parse_config
+    # Create uninitialized instance
+    p = parse_config.__new__(parse_config)
+
+    # Valid IP should pass
+    assert p.ipAddressCheck("192.168.1.1") == True
+
+    # IP with trailing garbage should fail
+    assert p.ipAddressCheck("192.168.1.1 garbage") == False
