@@ -131,7 +131,8 @@ def main():
             # Decouple from parent environment
             os.chdir("/")
             os.setsid()
-            os.umask(0)
+            # Security fix: use secure umask to prevent world-writable files
+            os.umask(0o022)
             
             # Do second fork
             try:
