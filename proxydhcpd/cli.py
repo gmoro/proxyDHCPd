@@ -131,7 +131,8 @@ def main():
             # Decouple from parent environment
             os.chdir("/")
             os.setsid()
-            os.umask(0)
+            # 🛡️ Sentinel: Use a secure file creation mask (0o022) instead of 0 to prevent world-writable files
+            os.umask(0o022)
             
             # Do second fork
             try:
