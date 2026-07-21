@@ -29,3 +29,44 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+import os
+import sys
+from unittest.mock import patch, MagicMock
+
+@patch('os.fork')
+@patch('os.setsid')
+@patch('os.chdir')
+@patch('os.umask')
+@patch('sys.exit')
+@patch('sys.argv', ['proxydhcpd', '-c', 'proxy.ini', '-d'])
+@patch('os.access', return_value=True)
+@patch('socket.socket')
+@patch('proxydhcpd.cli.DHCPD')
+@patch('proxydhcpd.cli.ProxyDHCPD')
+def test_secure_umask_on_daemonize(mock_proxy, mock_dhcpd, mock_socket, mock_access, mock_exit, mock_umask, mock_chdir, mock_setsid, mock_fork):
+    # Skip test on Windows where os.fork is not available or used
+    if sys.platform == 'win32':
+        pytest.skip("Daemonization is not supported on Windows")
+
+    # Mock os.fork to simulate double fork
+    # First fork returns 0 (child process)
+    # Second fork returns 0 (grandchild) - we'll exit to stop the loop
+    def fork_side_effect():
+        if mock_fork.call_count == 1:
+            return 0
+        else:
+            raise SystemExit(0)
+    mock_fork.side_effect = fork_side_effect
+
+    mock_exit.side_effect = SystemExit(0)
+
+    # Import inside the test to avoid side effects
+    from proxydhcpd.cli import main
+
+    try:
+        main()
+    except SystemExit:
+        pass
+
+    mock_umask.assert_called_once_with(0o022)
