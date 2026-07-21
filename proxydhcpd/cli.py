@@ -131,7 +131,7 @@ def main():
             # Decouple from parent environment
             os.chdir("/")
             os.setsid()
-            os.umask(0)
+            os.umask(0o022) # 🛡️ Sentinel: Use secure umask (0o022) to prevent world-writable files (CWE-732)
             
             # Do second fork
             try:
