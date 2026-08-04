@@ -29,3 +29,21 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+def test_ip_address_check_strict_matching():
+    import unittest.mock as mock
+    from proxydhcpd.proxyconfig import parse_config
+
+    # We can mock parse_config's __init__ to avoid setup logic
+    with mock.patch.object(parse_config, '__init__', lambda self, configfile='proxy.ini': None):
+        config_parser = parse_config()
+
+        # Valid IPs should pass
+        assert config_parser.ipAddressCheck("192.168.1.1") == True
+        assert config_parser.ipAddressCheck("255.255.255.255") == True
+        assert config_parser.ipAddressCheck("0.0.0.0") == True
+
+        # Invalid IPs should fail (including those with trailing garbage)
+        assert config_parser.ipAddressCheck("192.168.1.1 trailing") == False
+        assert config_parser.ipAddressCheck("192.168.1.1; rm -rf /") == False
+        assert config_parser.ipAddressCheck("192.168.1.1\n") == False
