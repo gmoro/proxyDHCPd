@@ -29,3 +29,28 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+def test_secure_umask_daemonization():
+    import sys
+    from unittest.mock import patch
+
+    if sys.platform == 'win32':
+        pytest.skip("Daemonization not supported on Windows")
+
+    with patch('os.fork', side_effect=[0, 0]), \
+         patch('os.setsid'), \
+         patch('os.chdir'), \
+         patch('os.umask') as mock_umask, \
+         patch('proxydhcpd.cli.DHCPD'), \
+         patch('proxydhcpd.cli.ProxyDHCPD'), \
+         patch('socket.socket'), \
+         patch('time.sleep', side_effect=SystemExit), \
+         patch('sys.argv', ['proxydhcpd', '-c', 'proxy.ini', '-d']):
+
+        from proxydhcpd.cli import main
+        try:
+            main()
+        except SystemExit:
+            pass
+
+        mock_umask.assert_called_with(0o022)
