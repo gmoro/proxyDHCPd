@@ -53,7 +53,9 @@ class DhcpPacket(DhcpBasicPacket):
                 result = []
                 hexsym = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
                 for iterator in range(6) :
-                    result += [str(hexsym[data[iterator]/16]+hexsym[data[iterator]%16])]
+                    # SEC: Use integer division (//) for Python 3 compatibility to prevent
+                    # TypeError which causes unhandled exception crashes when logging packets (DoS)
+                    result += [str(hexsym[data[iterator]//16]+hexsym[data[iterator]%16])]
 
                 result = ':'.join(result)
 
