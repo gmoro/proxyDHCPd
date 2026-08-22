@@ -2,3 +2,7 @@
 **Vulnerability:** In `pydhcplib`'s packet parsing logic, `DecodePacket` did not check if the iterator was at the end of the packet data before attempting to read the length byte of a DHCP option (`iterator+1`). A specially crafted packet terminating exactly at an option byte code would throw an `IndexError: list index out of range`, potentially crashing the ProxyDHCP daemon handling the packet.
 **Learning:** This existed because the original `pydhcplib` codebase assumed a well-formed network payload and blindly relied on `self.packet_data[iterator+1]`.
 **Prevention:** Ensure all binary network data parsing functions bounds-check their read iterators against the maximum buffer length before consuming dynamically-sized tokens.
+## 2024-05-24 - DoS via TypeError in Packet String Representation
+**Vulnerability:** In `pydhcplib`'s packet formatting logic (`DhcpPacket.str()`), processing a MAC address field (`hwmac`) used the legacy `/` operator (`data[iterator]/16`). In Python 3, this returns a float, which causes a `TypeError` when used as an index for the `hexsym` array, leading to a daemon crash.
+**Learning:** This vulnerability existed because the codebase was migrated from Python 2 (where `/` on integers performs integer division) to Python 3 without auditing legacy division operators used as list indices.
+**Prevention:** Always cast division results to integers (e.g. `int()`) or use floor division (`//`) when calculating array indices to ensure backward compatibility and prevent unhandled type exceptions.
