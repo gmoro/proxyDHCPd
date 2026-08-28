@@ -29,3 +29,23 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+
+def test_ip_address_check_strict_matching(mocker):
+    from proxydhcpd.proxyconfig import parse_config
+
+    # Mock the parse_config __init__ to avoid reading config files
+    mocker.patch('proxydhcpd.proxyconfig.parse_config.__init__', return_value=None)
+
+    config = parse_config()
+
+    # Valid IPs should pass
+    assert config.ipAddressCheck("192.168.1.1") is True
+    assert config.ipAddressCheck("10.0.0.255") is True
+
+    # Partially matching IPs should fail with fullmatch
+    assert config.ipAddressCheck("192.168.1.1.evil") is False
+    assert config.ipAddressCheck("192.168.1.1 ") is False
+    assert config.ipAddressCheck(" 192.168.1.1") is False
+    assert config.ipAddressCheck("192.168.1.1\n") is False
+    assert config.ipAddressCheck("evil192.168.1.1") is False
