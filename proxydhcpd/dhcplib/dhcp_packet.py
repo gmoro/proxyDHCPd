@@ -27,6 +27,14 @@ import sys
 
 class DhcpPacket(DhcpBasicPacket):
     def str(self):
+        # 🛡️ Sentinel: Wrap packet representation in try-except to prevent DoS
+        # crashing the daemon when logging malformed packets.
+        try:
+            return self._str_impl()
+        except Exception as e:
+            return "# Header fields\n# [Malformed Packet - Logging aborted to prevent crash]"
+
+    def _str_impl(self):
         # Process headers : 
         printable_data = "# Header fields\n"
 
@@ -50,12 +58,7 @@ class DhcpPacket(DhcpBasicPacket):
 
             elif DhcpFieldsTypes[opt] == "ipv4" : result = ipv4(data).str()
             elif DhcpFieldsTypes[opt] == "hwmac" :
-                result = []
-                hexsym = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
-                for iterator in range(6) :
-                    result += [str(hexsym[data[iterator]/16]+hexsym[data[iterator]%16])]
-
-                result = ':'.join(result)
+                result = ":".join("%02x" % each for each in data[:6])
 
             printable_data += opt+" : "+result  + "\n"
 
