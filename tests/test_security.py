@@ -29,3 +29,13 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+def test_packet_str_hwmac_typeerror():
+    packet = DhcpPacket()
+    payload = [0] * 236 + MagicCookie
+    packet.DecodePacket(bytes(payload))
+    packet.packet_data[28:44] = [0]*16
+    try:
+        packet.str()
+    except TypeError:
+        pytest.fail("packet.str() raised TypeError on hwmac parsing")
