@@ -2,3 +2,7 @@
 **Vulnerability:** In `pydhcplib`'s packet parsing logic, `DecodePacket` did not check if the iterator was at the end of the packet data before attempting to read the length byte of a DHCP option (`iterator+1`). A specially crafted packet terminating exactly at an option byte code would throw an `IndexError: list index out of range`, potentially crashing the ProxyDHCP daemon handling the packet.
 **Learning:** This existed because the original `pydhcplib` codebase assumed a well-formed network payload and blindly relied on `self.packet_data[iterator+1]`.
 **Prevention:** Ensure all binary network data parsing functions bounds-check their read iterators against the maximum buffer length before consuming dynamically-sized tokens.
+## 2024-05-24 - DoS via Legacy Division Float Index in Python 3
+**Vulnerability:** In `pydhcplib`'s packet parsing logic, `DhcpPacket.str()` used legacy division (`data[iterator]/16`) on an array element. In Python 3, this returns a float, which causes a `TypeError` when used as a list index for `hexsym`.
+**Learning:** This existed because the codebase was originally written for Python 2, where `/` between integers performed floor division. The migration to Python 3 exposed this as a Denial of Service risk if a malformed packet triggers string conversion.
+**Prevention:** Always use floor division (`//`), explicitly cast to integer (`int()`), or utilize built-in string formatting (e.g. `"%02x"`) when performing arithmetic for array indexing to ensure compatibility and prevent unhandled exceptions.
