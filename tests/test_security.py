@@ -29,3 +29,12 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+def test_dhcp_packet_str_type_error():
+    packet = DhcpPacket()
+    packet.packet_data = [0] * 300
+    try:
+        # In python 3, this will throw a TypeError due to /16 on int list if not fixed
+        packet.str()
+    except TypeError as e:
+        pytest.fail(f"TypeError raised: {e}")
