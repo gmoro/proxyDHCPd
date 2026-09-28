@@ -181,6 +181,8 @@ class DhcpBasicPacket:
                     break # Protect against out-of-bounds read if option length is missing
                 opt_len = self.packet_data[iterator+1]
                 opt_first = iterator+1
+                if opt_first + 1 + opt_len > end_iterator:
+                    break # SECURITY FIX: Protect against truncated payloads
                 self.options_data[DhcpOptionsList[self.packet_data[iterator]]] = self.packet_data[opt_first+1:opt_len+opt_first+1]
                 iterator += self.packet_data[opt_first] + 2
             else :
