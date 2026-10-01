@@ -29,3 +29,9 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+def test_set_option_fixed_length_validation():
+    packet = DhcpPacket()
+    # "request_ip_address" is an ipv4 option, expecting exactly 4 bytes
+    assert packet.SetOption("request_ip_address", [192, 168, 1, 1, 99]) == False
+    assert packet.SetOption("request_ip_address", [192, 168, 1, 1]) == True
