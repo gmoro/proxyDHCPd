@@ -106,11 +106,18 @@ class DhcpBasicPacket:
             
             specs = fields_specs[DhcpOptionsTypes[DhcpOptions[name]]]
             length = len(value)
-            if (specs[0]!=0 and specs==length) or (specs[1]<=length and length%specs[2]==0):
-                self.options_data[name] = value
-                return True
-            else :
-                return False
+            if specs[0] != 0:
+                if specs[0] == length:
+                    self.options_data[name] = value
+                    return True
+                else:
+                    return False
+            else:
+                if specs[1]<=length and length%specs[2]==0:
+                    self.options_data[name] = value
+                    return True
+                else :
+                    return False
 
         sys.stderr.write( "pydhcplib.dhcp_basic_packet.setoption error : unknown option "+name)
         return False
