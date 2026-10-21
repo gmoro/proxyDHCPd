@@ -29,3 +29,13 @@ def test_decode_packet_out_of_bounds_unknown_length_exceeds():
     payload = [0] * 236 + MagicCookie + [99, 10]
     # This should not raise an IndexError
     packet.DecodePacket(bytes(payload))
+
+def test_set_option_length_validation_bypass():
+    packet = DhcpPacket()
+    # subnet_mask is an ipv4 type with fixed length 4
+    # A length of 5 should be rejected
+    result = packet.SetOption("subnet_mask", [1, 2, 3, 4, 5])
+    assert result is False
+    # A length of 4 should be accepted
+    result2 = packet.SetOption("subnet_mask", [1, 2, 3, 4])
+    assert result2 is True
