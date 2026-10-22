@@ -1,4 +1,4 @@
-## 2024-05-24 - DoS via Unhandled Out-Of-Bounds Exception in Packet Parsing
-**Vulnerability:** In `pydhcplib`'s packet parsing logic, `DecodePacket` did not check if the iterator was at the end of the packet data before attempting to read the length byte of a DHCP option (`iterator+1`). A specially crafted packet terminating exactly at an option byte code would throw an `IndexError: list index out of range`, potentially crashing the ProxyDHCP daemon handling the packet.
-**Learning:** This existed because the original `pydhcplib` codebase assumed a well-formed network payload and blindly relied on `self.packet_data[iterator+1]`.
-**Prevention:** Ensure all binary network data parsing functions bounds-check their read iterators against the maximum buffer length before consuming dynamically-sized tokens.
+## 2024-10-22 - DHCP Option Validation Bypass
+**Vulnerability:** In `pydhcplib/dhcp_basic_packet.py`, `SetOption` compares a tuple/list `specs` to an integer `length` (`specs==length`) when checking fixed-length DHCP options. This type mismatch evaluates to `False`, bypassing the fixed-length validation and falling through to the variable-length validation branch `(specs[1]<=length and length%specs[2]==0)` which improperly allows any length.
+**Learning:** Python evaluates `list == int` as `False` silently rather than raising a `TypeError`. This allows logic flaws in validation conditions to bypass strict security checks and fall back to looser checks.
+**Prevention:** Explicitly index elements when comparing to primitives (`specs[0] == length`) and strictly separate fixed-length vs variable-length validation branches (e.g. check `specs[0] == 0` for the variable length branch).
