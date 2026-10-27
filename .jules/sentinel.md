@@ -2,3 +2,8 @@
 **Vulnerability:** In `pydhcplib`'s packet parsing logic, `DecodePacket` did not check if the iterator was at the end of the packet data before attempting to read the length byte of a DHCP option (`iterator+1`). A specially crafted packet terminating exactly at an option byte code would throw an `IndexError: list index out of range`, potentially crashing the ProxyDHCP daemon handling the packet.
 **Learning:** This existed because the original `pydhcplib` codebase assumed a well-formed network payload and blindly relied on `self.packet_data[iterator+1]`.
 **Prevention:** Ensure all binary network data parsing functions bounds-check their read iterators against the maximum buffer length before consuming dynamically-sized tokens.
+
+## 2024-10-24 - Logic flaw via Truncated Packet Payloads in Options Parsing
+**Bug:** Python list slicing silently truncates out-of-bounds reads, masking malformed payloads and causing downstream crashes.
+**Learning:** This existed because list slicing handles out-of-bounds gracefully, hiding the missing data.
+**Prevention:** Explicitly verify the option payload length against buffer boundaries before extraction.
