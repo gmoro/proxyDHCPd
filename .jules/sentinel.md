@@ -2,3 +2,7 @@
 **Vulnerability:** In `pydhcplib`'s packet parsing logic, `DecodePacket` did not check if the iterator was at the end of the packet data before attempting to read the length byte of a DHCP option (`iterator+1`). A specially crafted packet terminating exactly at an option byte code would throw an `IndexError: list index out of range`, potentially crashing the ProxyDHCP daemon handling the packet.
 **Learning:** This existed because the original `pydhcplib` codebase assumed a well-formed network payload and blindly relied on `self.packet_data[iterator+1]`.
 **Prevention:** Ensure all binary network data parsing functions bounds-check their read iterators against the maximum buffer length before consuming dynamically-sized tokens.
+## 2024-05-24 - Bypass of Fixed-Length Validation in DHCP Options
+**Vulnerability:** The `SetOption` method in `proxydhcpd/dhcplib/dhcp_basic_packet.py` contained a silent type-mismatch bypass during length validation (`specs == length` instead of `specs[0] == length`). This allowed options with strictly defined lengths (like `ipv4` or `bool`) to fall through to the variable-length validation branch, accepting payloads of arbitrary sizes.
+**Learning:** Python's silent evaluation of `list == int` as `False` masks type mismatches, causing logic to inadvertently bypass strict validation branches and fall back to permissive ones.
+**Prevention:** Explicitly compare matching types when accessing elements in constraint lists, and always verify that fallback conditions (`specs[0] == 0`) are met before applying variable-length logic.
