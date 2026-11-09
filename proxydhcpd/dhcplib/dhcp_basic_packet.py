@@ -106,7 +106,9 @@ class DhcpBasicPacket:
             
             specs = fields_specs[DhcpOptionsTypes[DhcpOptions[name]]]
             length = len(value)
-            if (specs[0]!=0 and specs==length) or (specs[1]<=length and length%specs[2]==0):
+            # Fix type-mismatch bug: use specs[0] instead of specs to check fixed length,
+            # and explicitly verify specs[0] == 0 before falling back to variable-length rules.
+            if (specs[0]!=0 and specs[0]==length) or (specs[0]==0 and specs[1]<=length and length%specs[2]==0):
                 self.options_data[name] = value
                 return True
             else :
