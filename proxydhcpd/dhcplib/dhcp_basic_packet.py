@@ -106,7 +106,8 @@ class DhcpBasicPacket:
             
             specs = fields_specs[DhcpOptionsTypes[DhcpOptions[name]]]
             length = len(value)
-            if (specs[0]!=0 and specs==length) or (specs[1]<=length and length%specs[2]==0):
+            # Sentinel: Enforce strict fixed-length check (specs[0]) to prevent type-mismatch bypass which allowed malformed short payloads.
+            if (specs[0]!=0 and specs[0]==length) or (specs[0]==0 and specs[1]<=length and length%specs[2]==0):
                 self.options_data[name] = value
                 return True
             else :
