@@ -53,7 +53,8 @@ class DhcpPacket(DhcpBasicPacket):
                 result = []
                 hexsym = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
                 for iterator in range(6) :
-                    result += [str(hexsym[data[iterator]/16]+hexsym[data[iterator]%16])]
+                    # SECURITY FIX: Cast to integer or use integer division to prevent TypeError in Python 3.
+                    result += [str(hexsym[int(data[iterator]//16)]+hexsym[int(data[iterator]%16)])]
 
                 result = ':'.join(result)
 
